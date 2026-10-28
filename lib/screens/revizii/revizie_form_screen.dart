@@ -7,26 +7,48 @@ import '../../utils/date_utils.dart';
 
 class RevizieFormScreen extends StatefulWidget {
   final String vehiculId;
+  final Revizie? revizie;
 
-  const RevizieFormScreen({super.key, required this.vehiculId});
+  const RevizieFormScreen({super.key, required this.vehiculId, this.revizie});
 
   @override
   State<RevizieFormScreen> createState() => _RevizieFormScreenState();
 }
 
 class _RevizieFormScreenState extends State<RevizieFormScreen> {
-  final _tipCtrl = TextEditingController();
-  String _data = azIso();
-  final _kmCtrl = TextEditingController();
-  final _serviceCtrl = TextEditingController();
-  final _locatieCtrl = TextEditingController();
-  final _pieseCtrl = TextEditingController();
-  final _costManoperaCtrl = TextEditingController();
-  final _costPieseCtrl = TextEditingController();
-  final _proximKmCtrl = TextEditingController();
-  String _proximData = '';
-  final _observatiiCtrl = TextEditingController();
+  late final TextEditingController _tipCtrl;
+  late String _data;
+  late final TextEditingController _kmCtrl;
+  late final TextEditingController _serviceCtrl;
+  late final TextEditingController _locatieCtrl;
+  late final TextEditingController _pieseCtrl;
+  late final TextEditingController _costManoperaCtrl;
+  late final TextEditingController _costPieseCtrl;
+  late final TextEditingController _proximKmCtrl;
+  late String _proximData;
+  late final TextEditingController _observatiiCtrl;
   bool _seSalveaza = false;
+
+  bool get _editare => widget.revizie != null;
+
+  @override
+  void initState() {
+    super.initState();
+    final r = widget.revizie;
+    _tipCtrl = TextEditingController(text: r?.tip ?? '');
+    _data = r?.data ?? azIso();
+    _kmCtrl = TextEditingController(text: r?.km?.toString() ?? '');
+    _serviceCtrl = TextEditingController(text: r?.service ?? '');
+    _locatieCtrl = TextEditingController(text: r?.locatie ?? '');
+    _pieseCtrl = TextEditingController(text: r?.piese ?? '');
+    _costManoperaCtrl = TextEditingController(
+      text: r?.costManopera.toString() ?? '',
+    );
+    _costPieseCtrl = TextEditingController(text: r?.costPiese.toString() ?? '');
+    _proximKmCtrl = TextEditingController(text: r?.proximKm?.toString() ?? '');
+    _proximData = r?.proximData ?? '';
+    _observatiiCtrl = TextEditingController(text: r?.observatii ?? '');
+  }
 
   @override
   void dispose() {
@@ -45,7 +67,7 @@ class _RevizieFormScreenState extends State<RevizieFormScreen> {
   Future<void> _aleg(bool dataPrincipala) async {
     final initial =
         DateTime.tryParse(dataPrincipala ? _data : _proximData) ??
-            DateTime.now();
+        DateTime.now();
     final rezultat = await showDatePicker(
       context: context,
       initialDate: initial,
@@ -70,7 +92,7 @@ class _RevizieFormScreenState extends State<RevizieFormScreen> {
     final costManopera = num.tryParse(_costManoperaCtrl.text) ?? 0;
     final costPiese = num.tryParse(_costPieseCtrl.text) ?? 0;
     final revizie = Revizie(
-      id: '',
+      id: widget.revizie?.id ?? '',
       vehiculId: widget.vehiculId,
       tip: _tipCtrl.text.trim(),
       data: _data,
@@ -84,9 +106,14 @@ class _RevizieFormScreenState extends State<RevizieFormScreen> {
       proximKm: int.tryParse(_proximKmCtrl.text),
       proximData: _proximData,
       observatii: _observatiiCtrl.text.trim(),
+      documente: widget.revizie?.documente ?? const [],
     );
     try {
-      await date.reviziiRepo.adauga(revizie);
+      if (_editare) {
+        await date.reviziiRepo.actualizeaza(revizie.id, revizie);
+      } else {
+        await date.reviziiRepo.adauga(revizie);
+      }
       if (mounted) Navigator.of(context).pop();
     } finally {
       if (mounted) setState(() => _seSalveaza = false);
@@ -97,7 +124,7 @@ class _RevizieFormScreenState extends State<RevizieFormScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Revizie nouă'),
+        title: Text(_editare ? 'Editează revizie' : 'Revizie nouă'),
         actions: [
           IconButton(
             onPressed: _seSalveaza ? null : _salveaza,
@@ -111,7 +138,9 @@ class _RevizieFormScreenState extends State<RevizieFormScreen> {
           TextField(
             controller: _tipCtrl,
             decoration: const InputDecoration(
-                labelText: 'Tip revizie', border: OutlineInputBorder()),
+              labelText: 'Tip revizie',
+              border: OutlineInputBorder(),
+            ),
           ),
           const SizedBox(height: 12),
           ListTile(
@@ -124,68 +153,90 @@ class _RevizieFormScreenState extends State<RevizieFormScreen> {
             controller: _kmCtrl,
             keyboardType: TextInputType.number,
             decoration: const InputDecoration(
-                labelText: 'Km la revizie', border: OutlineInputBorder()),
+              labelText: 'Km la revizie',
+              border: OutlineInputBorder(),
+            ),
           ),
           const SizedBox(height: 12),
-          Row(children: [
-            Expanded(
-              child: TextField(
-                controller: _serviceCtrl,
-                decoration: const InputDecoration(
-                    labelText: 'Service', border: OutlineInputBorder()),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _serviceCtrl,
+                  decoration: const InputDecoration(
+                    labelText: 'Service',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
               ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: TextField(
-                controller: _locatieCtrl,
-                decoration: const InputDecoration(
-                    labelText: 'Locație', border: OutlineInputBorder()),
+              const SizedBox(width: 12),
+              Expanded(
+                child: TextField(
+                  controller: _locatieCtrl,
+                  decoration: const InputDecoration(
+                    labelText: 'Locație',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
               ),
-            ),
-          ]),
+            ],
+          ),
           const SizedBox(height: 12),
           TextField(
             controller: _pieseCtrl,
             maxLines: 2,
             decoration: const InputDecoration(
-                labelText: 'Piese schimbate', border: OutlineInputBorder()),
+              labelText: 'Piese schimbate',
+              border: OutlineInputBorder(),
+            ),
           ),
           const SizedBox(height: 12),
-          Row(children: [
-            Expanded(
-              child: TextField(
-                controller: _costManoperaCtrl,
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
-                decoration: const InputDecoration(
-                    labelText: 'Cost manoperă', border: OutlineInputBorder()),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _costManoperaCtrl,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  decoration: const InputDecoration(
+                    labelText: 'Cost manoperă',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
               ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: TextField(
-                controller: _costPieseCtrl,
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
-                decoration: const InputDecoration(
-                    labelText: 'Cost piese', border: OutlineInputBorder()),
+              const SizedBox(width: 12),
+              Expanded(
+                child: TextField(
+                  controller: _costPieseCtrl,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  decoration: const InputDecoration(
+                    labelText: 'Cost piese',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
               ),
-            ),
-          ]),
+            ],
+          ),
           const SizedBox(height: 12),
           TextField(
             controller: _proximKmCtrl,
             keyboardType: TextInputType.number,
             decoration: const InputDecoration(
-                labelText: 'Proxima revizie (km)', border: OutlineInputBorder()),
+              labelText: 'Proxima revizie (km)',
+              border: OutlineInputBorder(),
+            ),
           ),
           const SizedBox(height: 12),
           ListTile(
             title: const Text('Proxima revizie (dată)'),
-            subtitle: Text(_proximData.isEmpty
-                ? 'Alege o dată'
-                : formateazaDataRo(_proximData)),
+            subtitle: Text(
+              _proximData.isEmpty
+                  ? 'Alege o dată'
+                  : formateazaDataRo(_proximData),
+            ),
             trailing: const Icon(Icons.calendar_today_outlined),
             onTap: () => _aleg(false),
           ),
@@ -194,7 +245,9 @@ class _RevizieFormScreenState extends State<RevizieFormScreen> {
             controller: _observatiiCtrl,
             maxLines: 3,
             decoration: const InputDecoration(
-                labelText: 'Observații', border: OutlineInputBorder()),
+              labelText: 'Observații',
+              border: OutlineInputBorder(),
+            ),
           ),
         ],
       ),

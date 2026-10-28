@@ -7,18 +7,30 @@ import '../../utils/date_utils.dart';
 
 class ItpFormScreen extends StatefulWidget {
   final String vehiculId;
+  final Itp? itp;
 
-  const ItpFormScreen({super.key, required this.vehiculId});
+  const ItpFormScreen({super.key, required this.vehiculId, this.itp});
 
   @override
   State<ItpFormScreen> createState() => _ItpFormScreenState();
 }
 
 class _ItpFormScreenState extends State<ItpFormScreen> {
-  String _dataEfectuare = azIso();
-  String _dataExpirare = '';
-  final _costCtrl = TextEditingController();
+  late String _dataEfectuare;
+  late String _dataExpirare;
+  late final TextEditingController _costCtrl;
   bool _seSalveaza = false;
+
+  bool get _editare => widget.itp != null;
+
+  @override
+  void initState() {
+    super.initState();
+    final i = widget.itp;
+    _dataEfectuare = i?.dataEfectuare ?? azIso();
+    _dataExpirare = i?.dataExpirare ?? '';
+    _costCtrl = TextEditingController(text: i?.cost.toString() ?? '');
+  }
 
   @override
   void dispose() {
@@ -27,8 +39,8 @@ class _ItpFormScreenState extends State<ItpFormScreen> {
   }
 
   Future<void> _aleg(bool efectuare) async {
-    final initial = DateTime.tryParse(
-            efectuare ? _dataEfectuare : _dataExpirare) ??
+    final initial =
+        DateTime.tryParse(efectuare ? _dataEfectuare : _dataExpirare) ??
         DateTime.now();
     final rezultat = await showDatePicker(
       context: context,
@@ -50,21 +62,26 @@ class _ItpFormScreenState extends State<ItpFormScreen> {
 
   Future<void> _salveaza() async {
     if (_dataExpirare.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Alege data expirării.')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Alege data expirării.')));
       return;
     }
     setState(() => _seSalveaza = true);
     final date = context.read<DateProvider>();
     final itp = Itp(
-      id: '',
+      id: widget.itp?.id ?? '',
       vehiculId: widget.vehiculId,
       dataEfectuare: _dataEfectuare,
       dataExpirare: _dataExpirare,
       cost: num.tryParse(_costCtrl.text) ?? 0,
+      documente: widget.itp?.documente ?? const [],
     );
     try {
-      await date.itpRepo.adauga(itp);
+      if (_editare) {
+        await date.itpRepo.actualizeaza(itp.id, itp);
+      } else {
+        await date.itpRepo.adauga(itp);
+      }
       if (mounted) Navigator.of(context).pop();
     } finally {
       if (mounted) setState(() => _seSalveaza = false);
@@ -75,7 +92,7 @@ class _ItpFormScreenState extends State<ItpFormScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('ITP nou'),
+        title: Text(_editare ? 'Editează ITP' : 'ITP nou'),
         actions: [
           IconButton(
             onPressed: _seSalveaza ? null : _salveaza,
@@ -94,9 +111,11 @@ class _ItpFormScreenState extends State<ItpFormScreen> {
           ),
           ListTile(
             title: const Text('Data expirării *'),
-            subtitle: Text(_dataExpirare.isEmpty
-                ? 'Alege o dată'
-                : formateazaDataRo(_dataExpirare)),
+            subtitle: Text(
+              _dataExpirare.isEmpty
+                  ? 'Alege o dată'
+                  : formateazaDataRo(_dataExpirare),
+            ),
             trailing: const Icon(Icons.calendar_today_outlined),
             onTap: () => _aleg(false),
           ),
@@ -104,8 +123,10 @@ class _ItpFormScreenState extends State<ItpFormScreen> {
           TextField(
             controller: _costCtrl,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration:
-                const InputDecoration(labelText: 'Cost (lei)', border: OutlineInputBorder()),
+            decoration: const InputDecoration(
+              labelText: 'Cost (lei)',
+              border: OutlineInputBorder(),
+            ),
           ),
         ],
       ),

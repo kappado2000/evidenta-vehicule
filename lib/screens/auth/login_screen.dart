@@ -80,12 +80,17 @@ class _LoginScreenState extends State<LoginScreen> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Icon(Icons.directions_car,
-                        size: 64, color: Color(0xFF0891B2)),
+                    const Icon(
+                      Icons.directions_car,
+                      size: 64,
+                      color: Color(0xFF0891B2),
+                    ),
                     const SizedBox(height: 12),
-                    Text('Evidență Vehicule',
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.headlineSmall),
+                    Text(
+                      'Evidență Vehicule',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    ),
                     const SizedBox(height: 32),
                     TextFormField(
                       controller: _emailCtrl,
@@ -95,8 +100,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         prefixIcon: Icon(Icons.email_outlined),
                         border: OutlineInputBorder(),
                       ),
-                      validator: (v) =>
-                          (v == null || !v.contains('@')) ? 'Email invalid' : null,
+                      validator: (v) => (v == null || !v.contains('@'))
+                          ? 'Email invalid'
+                          : null,
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
@@ -113,8 +119,12 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     if (_eroare != null) ...[
                       const SizedBox(height: 12),
-                      Text(_eroare!,
-                          style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                      Text(
+                        _eroare!,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                      ),
                     ],
                     const SizedBox(height: 24),
                     FilledButton(
@@ -123,16 +133,23 @@ class _LoginScreenState extends State<LoginScreen> {
                           ? const SizedBox(
                               width: 20,
                               height: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2))
-                          : Text(_modInregistrare ? 'Creează cont' : 'Autentificare'),
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : Text(
+                              _modInregistrare
+                                  ? 'Creează cont'
+                                  : 'Autentificare',
+                            ),
                     ),
                     const SizedBox(height: 12),
                     TextButton(
                       onPressed: () =>
                           setState(() => _modInregistrare = !_modInregistrare),
-                      child: Text(_modInregistrare
-                          ? 'Ai deja cont? Autentifică-te'
-                          : 'Nu ai cont? Creează unul'),
+                      child: Text(
+                        _modInregistrare
+                            ? 'Ai deja cont? Autentifică-te'
+                            : 'Nu ai cont? Creează unul',
+                      ),
                     ),
                   ],
                 ),

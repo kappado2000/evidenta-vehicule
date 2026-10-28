@@ -18,24 +18,23 @@ class ListaVehiculeScreen extends StatelessWidget {
       body: date.seIncarca
           ? const Center(child: CircularProgressIndicator())
           : date.vehicule.isEmpty
-              ? const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(24),
-                    child: Text('Niciun vehicul adăugat încă.'),
-                  ),
-                )
-              : ListView.builder(
-                  padding: const EdgeInsets.all(12),
-                  itemCount: date.vehicule.length,
-                  itemBuilder: (context, i) {
-                    final v = date.vehicule[i];
-                    return _CardVehicul(vehicul: v);
-                  },
-                ),
+          ? const Center(
+              child: Padding(
+                padding: EdgeInsets.all(24),
+                child: Text('Niciun vehicul adăugat încă.'),
+              ),
+            )
+          : ListView.builder(
+              padding: const EdgeInsets.all(12),
+              itemCount: date.vehicule.length,
+              itemBuilder: (context, i) {
+                final v = date.vehicule[i];
+                return _CardVehicul(vehicul: v);
+              },
+            ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const VehiculFormScreen()),
-        ),
+        onPressed: () => Navigator.of(context)
+            .push(MaterialPageRoute(builder: (_) => const VehiculFormScreen())),
         child: const Icon(Icons.add),
       ),
     );
@@ -65,8 +64,10 @@ class _CardVehicul extends StatelessWidget {
                   ),
                 ),
         ),
-        title: Text(vehicul.nr,
-            style: const TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(
+          vehicul.nr,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
         subtitle: Text(vehicul.numeAfisat.isEmpty ? '—' : vehicul.numeAfisat),
         trailing: const Icon(Icons.chevron_right),
         onTap: () => Navigator.of(context).push(

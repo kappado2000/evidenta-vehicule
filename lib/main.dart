@@ -63,17 +63,28 @@ class _App extends StatelessWidget {
     return MaterialApp(
       title: 'Evidență Vehicule',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorSchemeSeed: const Color(0xFF0891B2),
-        useMaterial3: true,
-        brightness: Brightness.light,
-      ),
-      darkTheme: ThemeData(
-        colorSchemeSeed: const Color(0xFF0891B2),
-        useMaterial3: true,
-        brightness: Brightness.dark,
-      ),
+      theme: _temaCu(Brightness.light),
+      darkTheme: _temaCu(Brightness.dark),
       home: home,
     );
   }
+}
+
+/// Material3 pune implicit subtitlurile din ListTile pe `onSurfaceVariant`,
+/// un gri estompat cu contrast slab (semnalat explicit de user). Le ridicăm
+/// pe `onSurface` la opacitate mare, ca să rămână lizibile peste tot unde
+/// apar (alerte, liste de vehicule, secțiunile din ecranul de detaliu).
+ThemeData _temaCu(Brightness brightness) {
+  final tema = ThemeData(
+    colorSchemeSeed: const Color(0xFF0891B2),
+    useMaterial3: true,
+    brightness: brightness,
+  );
+  return tema.copyWith(
+    listTileTheme: tema.listTileTheme.copyWith(
+      subtitleTextStyle: tema.textTheme.bodyMedium?.copyWith(
+        color: tema.colorScheme.onSurface.withValues(alpha: 0.82),
+      ),
+    ),
+  );
 }

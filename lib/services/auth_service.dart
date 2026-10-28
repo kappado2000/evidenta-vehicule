@@ -11,10 +11,7 @@ class AuthService {
   }
 
   Future<UserCredential> inregistreaza(String email, String parola) {
-    return _auth.createUserWithEmailAndPassword(
-      email: email,
-      password: parola,
-    );
+    return _auth.createUserWithEmailAndPassword(email: email, password: parola);
   }
 
   Future<void> delogare() => _auth.signOut();

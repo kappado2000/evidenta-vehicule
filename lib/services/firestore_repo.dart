@@ -43,7 +43,8 @@ class FirestoreRepo<T> {
   }
 
   Future<void> actualizeaza(String id, T model) async {
-    final data = toFirestore(model)..['updatedAt'] = FieldValue.serverTimestamp();
+    final data = toFirestore(model)
+      ..['updatedAt'] = FieldValue.serverTimestamp();
     await _ref.doc(id).set(data, SetOptions(merge: true));
   }
 

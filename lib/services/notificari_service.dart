@@ -22,14 +22,9 @@ class NotificariService {
   Future<void> _initializeazaLocalNotif() async {
     if (_localNotifInitializat) return;
     const setariIos = DarwinInitializationSettings();
-    const setariAndroid = AndroidInitializationSettings(
-      '@mipmap/ic_launcher',
-    );
+    const setariAndroid = AndroidInitializationSettings('@mipmap/ic_launcher');
     await _localNotif.initialize(
-      const InitializationSettings(
-        iOS: setariIos,
-        android: setariAndroid,
-      ),
+      const InitializationSettings(iOS: setariIos, android: setariAndroid),
     );
     _localNotifInitializat = true;
   }
@@ -62,15 +57,15 @@ class NotificariService {
         .collection('fcmTokens')
         .doc(token)
         .set({
-      'token': token,
-      'userId': user?.uid ?? '',
-      'email': user?.email ?? '',
-      'platform': 'mobile',
-      'tip': 'fcm',
-      'activ': true,
-      'createdAt': FieldValue.serverTimestamp(),
-      'updatedAt': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
+          'token': token,
+          'userId': user?.uid ?? '',
+          'email': user?.email ?? '',
+          'platform': 'mobile',
+          'tip': 'fcm',
+          'activ': true,
+          'createdAt': FieldValue.serverTimestamp(),
+          'updatedAt': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
   }
 
   /// Afișează un mesaj primit cât aplicația e în prim-plan (iOS nu arată

@@ -59,8 +59,9 @@ class _VehiculFormScreenState extends State<VehiculFormScreen> {
     _vinCtrl = TextEditingController(text: v?.vin ?? '');
     _culoareCtrl = TextEditingController(text: v?.culoare ?? '');
     _putereCtrl = TextEditingController(text: v?.putereCP?.toString() ?? '');
-    _capacitateCtrl =
-        TextEditingController(text: v?.capacitateCilindrica?.toString() ?? '');
+    _capacitateCtrl = TextEditingController(
+      text: v?.capacitateCilindrica?.toString() ?? '',
+    );
     _anvelopeCtrl = TextEditingController(text: v?.anvelope ?? '');
     _observatiiCtrl = TextEditingController(text: v?.observatii ?? '');
     _combustibil = v?.combustibil ?? '';
@@ -85,8 +86,10 @@ class _VehiculFormScreenState extends State<VehiculFormScreen> {
   }
 
   Future<void> _alegeFoto() async {
-    final fisier =
-        await ImagePicker().pickImage(source: ImageSource.gallery, imageQuality: 80);
+    final fisier = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 80,
+    );
     if (fisier != null) setState(() => _fotoNoua = fisier);
   }
 
@@ -160,7 +163,8 @@ class _VehiculFormScreenState extends State<VehiculFormScreen> {
                 ? const SizedBox(
                     width: 20,
                     height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2))
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
                 : const Icon(Icons.check),
           ),
         ],
@@ -179,8 +183,9 @@ class _VehiculFormScreenState extends State<VehiculFormScreen> {
                         builder: (context, snap) {
                           if (!snap.hasData) {
                             return const CircleAvatar(
-                                radius: 48,
-                                child: CircularProgressIndicator());
+                              radius: 48,
+                              child: CircularProgressIndicator(),
+                            );
                           }
                           return CircleAvatar(
                             radius: 48,
@@ -210,53 +215,69 @@ class _VehiculFormScreenState extends State<VehiculFormScreen> {
               controller: _nrCtrl,
               textCapitalization: TextCapitalization.characters,
               decoration: const InputDecoration(
-                  labelText: 'Număr înmatriculare *', border: OutlineInputBorder()),
+                labelText: 'Număr înmatriculare *',
+                border: OutlineInputBorder(),
+              ),
               validator: (v) =>
                   (v == null || v.trim().isEmpty) ? 'Obligatoriu' : null,
             ),
             const SizedBox(height: 12),
-            Row(children: [
-              Expanded(
-                child: TextFormField(
-                  controller: _marcaCtrl,
-                  decoration: const InputDecoration(
-                      labelText: 'Marcă', border: OutlineInputBorder()),
+            Row(
+              children: [
+                Expanded(
+                  child: TextFormField(
+                    controller: _marcaCtrl,
+                    decoration: const InputDecoration(
+                      labelText: 'Marcă',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: TextFormField(
-                  controller: _modelCtrl,
-                  decoration: const InputDecoration(
-                      labelText: 'Model', border: OutlineInputBorder()),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: TextFormField(
+                    controller: _modelCtrl,
+                    decoration: const InputDecoration(
+                      labelText: 'Model',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
                 ),
-              ),
-            ]),
+              ],
+            ),
             const SizedBox(height: 12),
-            Row(children: [
-              Expanded(
-                child: TextFormField(
-                  controller: _anCtrl,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                      labelText: 'An fabricație', border: OutlineInputBorder()),
+            Row(
+              children: [
+                Expanded(
+                  child: TextFormField(
+                    controller: _anCtrl,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'An fabricație',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: TextFormField(
-                  controller: _kmCtrl,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                      labelText: 'Km curent', border: OutlineInputBorder()),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: TextFormField(
+                    controller: _kmCtrl,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Km curent',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
                 ),
-              ),
-            ]),
+              ],
+            ),
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
               initialValue: _combustibil.isEmpty ? null : _combustibil,
               decoration: const InputDecoration(
-                  labelText: 'Combustibil', border: OutlineInputBorder()),
+                labelText: 'Combustibil',
+                border: OutlineInputBorder(),
+              ),
               items: _tipuriCombustibil
                   .map((t) => DropdownMenuItem(value: t, child: Text(t)))
                   .toList(),
@@ -267,52 +288,68 @@ class _VehiculFormScreenState extends State<VehiculFormScreen> {
               controller: _vinCtrl,
               textCapitalization: TextCapitalization.characters,
               decoration: const InputDecoration(
-                  labelText: 'VIN (serie șasiu)', border: OutlineInputBorder()),
+                labelText: 'VIN (serie șasiu)',
+                border: OutlineInputBorder(),
+              ),
             ),
             const SizedBox(height: 12),
-            Row(children: [
-              Expanded(
-                child: TextFormField(
-                  controller: _putereCtrl,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                      labelText: 'Putere (CP)', border: OutlineInputBorder()),
+            Row(
+              children: [
+                Expanded(
+                  child: TextFormField(
+                    controller: _putereCtrl,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Putere (CP)',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: TextFormField(
-                  controller: _capacitateCtrl,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                      labelText: 'Capacitate (cmc)', border: OutlineInputBorder()),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: TextFormField(
+                    controller: _capacitateCtrl,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Capacitate (cmc)',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
                 ),
-              ),
-            ]),
+              ],
+            ),
             const SizedBox(height: 12),
-            Row(children: [
-              Expanded(
-                child: TextFormField(
-                  controller: _culoareCtrl,
-                  decoration: const InputDecoration(
-                      labelText: 'Culoare', border: OutlineInputBorder()),
+            Row(
+              children: [
+                Expanded(
+                  child: TextFormField(
+                    controller: _culoareCtrl,
+                    decoration: const InputDecoration(
+                      labelText: 'Culoare',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: TextFormField(
-                  controller: _anvelopeCtrl,
-                  decoration: const InputDecoration(
-                      labelText: 'Anvelope', border: OutlineInputBorder()),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: TextFormField(
+                    controller: _anvelopeCtrl,
+                    decoration: const InputDecoration(
+                      labelText: 'Anvelope',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
                 ),
-              ),
-            ]),
+              ],
+            ),
             const SizedBox(height: 12),
             TextFormField(
               controller: _observatiiCtrl,
               maxLines: 3,
               decoration: const InputDecoration(
-                  labelText: 'Observații', border: OutlineInputBorder()),
+                labelText: 'Observații',
+                border: OutlineInputBorder(),
+              ),
             ),
             const SizedBox(height: 24),
           ],

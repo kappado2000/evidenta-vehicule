@@ -7,22 +7,42 @@ import '../../utils/date_utils.dart';
 
 class AsigurareFormScreen extends StatefulWidget {
   final String vehiculId;
+  final Asigurare? asigurare;
 
-  const AsigurareFormScreen({super.key, required this.vehiculId});
+  const AsigurareFormScreen({
+    super.key,
+    required this.vehiculId,
+    this.asigurare,
+  });
 
   @override
   State<AsigurareFormScreen> createState() => _AsigurareFormScreenState();
 }
 
 class _AsigurareFormScreenState extends State<AsigurareFormScreen> {
-  String _tip = 'RCA';
-  String _dataInceput = azIso();
-  String _dataExpirare = '';
-  final _furnizorCtrl = TextEditingController();
-  final _politaCtrl = TextEditingController();
-  final _costCtrl = TextEditingController();
-  final _observatiiCtrl = TextEditingController();
+  late String _tip;
+  late String _dataInceput;
+  late String _dataExpirare;
+  late final TextEditingController _furnizorCtrl;
+  late final TextEditingController _politaCtrl;
+  late final TextEditingController _costCtrl;
+  late final TextEditingController _observatiiCtrl;
   bool _seSalveaza = false;
+
+  bool get _editare => widget.asigurare != null;
+
+  @override
+  void initState() {
+    super.initState();
+    final a = widget.asigurare;
+    _tip = a?.tip ?? 'RCA';
+    _dataInceput = a?.dataInceput ?? azIso();
+    _dataExpirare = a?.dataExpirare ?? '';
+    _furnizorCtrl = TextEditingController(text: a?.furnizor ?? '');
+    _politaCtrl = TextEditingController(text: a?.polita ?? '');
+    _costCtrl = TextEditingController(text: a?.cost.toString() ?? '');
+    _observatiiCtrl = TextEditingController(text: a?.observatii ?? '');
+  }
 
   @override
   void dispose() {
@@ -36,7 +56,7 @@ class _AsigurareFormScreenState extends State<AsigurareFormScreen> {
   Future<void> _aleg(bool inceput) async {
     final initial =
         DateTime.tryParse(inceput ? _dataInceput : _dataExpirare) ??
-            DateTime.now();
+        DateTime.now();
     final rezultat = await showDatePicker(
       context: context,
       initialDate: initial,
@@ -64,7 +84,7 @@ class _AsigurareFormScreenState extends State<AsigurareFormScreen> {
     setState(() => _seSalveaza = true);
     final date = context.read<DateProvider>();
     final asig = Asigurare(
-      id: '',
+      id: widget.asigurare?.id ?? '',
       vehiculId: widget.vehiculId,
       tip: _tip,
       furnizor: _furnizorCtrl.text.trim(),
@@ -73,9 +93,14 @@ class _AsigurareFormScreenState extends State<AsigurareFormScreen> {
       dataExpirare: _dataExpirare,
       cost: num.tryParse(_costCtrl.text) ?? 0,
       observatii: _observatiiCtrl.text.trim(),
+      documentPolita: widget.asigurare?.documentPolita,
     );
     try {
-      await date.asigurariRepo.adauga(asig);
+      if (_editare) {
+        await date.asigurariRepo.actualizeaza(asig.id, asig);
+      } else {
+        await date.asigurariRepo.adauga(asig);
+      }
       if (mounted) Navigator.of(context).pop();
     } finally {
       if (mounted) setState(() => _seSalveaza = false);
@@ -86,7 +111,7 @@ class _AsigurareFormScreenState extends State<AsigurareFormScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Asigurare nouă'),
+        title: Text(_editare ? 'Editează asigurare' : 'Asigurare nouă'),
         actions: [
           IconButton(
             onPressed: _seSalveaza ? null : _salveaza,
@@ -100,7 +125,9 @@ class _AsigurareFormScreenState extends State<AsigurareFormScreen> {
           DropdownButtonFormField<String>(
             initialValue: _tip,
             decoration: const InputDecoration(
-                labelText: 'Tip', border: OutlineInputBorder()),
+              labelText: 'Tip',
+              border: OutlineInputBorder(),
+            ),
             items: tipuriAsigurare
                 .map((t) => DropdownMenuItem(value: t, child: Text(t)))
                 .toList(),
@@ -110,13 +137,17 @@ class _AsigurareFormScreenState extends State<AsigurareFormScreen> {
           TextField(
             controller: _furnizorCtrl,
             decoration: const InputDecoration(
-                labelText: 'Furnizor', border: OutlineInputBorder()),
+              labelText: 'Furnizor',
+              border: OutlineInputBorder(),
+            ),
           ),
           const SizedBox(height: 12),
           TextField(
             controller: _politaCtrl,
             decoration: const InputDecoration(
-                labelText: 'Număr poliță', border: OutlineInputBorder()),
+              labelText: 'Număr poliță',
+              border: OutlineInputBorder(),
+            ),
           ),
           const SizedBox(height: 12),
           ListTile(
@@ -127,9 +158,11 @@ class _AsigurareFormScreenState extends State<AsigurareFormScreen> {
           ),
           ListTile(
             title: const Text('Data expirării *'),
-            subtitle: Text(_dataExpirare.isEmpty
-                ? 'Alege o dată'
-                : formateazaDataRo(_dataExpirare)),
+            subtitle: Text(
+              _dataExpirare.isEmpty
+                  ? 'Alege o dată'
+                  : formateazaDataRo(_dataExpirare),
+            ),
             trailing: const Icon(Icons.calendar_today_outlined),
             onTap: () => _aleg(false),
           ),
@@ -138,14 +171,18 @@ class _AsigurareFormScreenState extends State<AsigurareFormScreen> {
             controller: _costCtrl,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             decoration: const InputDecoration(
-                labelText: 'Cost (lei)', border: OutlineInputBorder()),
+              labelText: 'Cost (lei)',
+              border: OutlineInputBorder(),
+            ),
           ),
           const SizedBox(height: 12),
           TextField(
             controller: _observatiiCtrl,
             maxLines: 3,
             decoration: const InputDecoration(
-                labelText: 'Observații', border: OutlineInputBorder()),
+              labelText: 'Observații',
+              border: OutlineInputBorder(),
+            ),
           ),
         ],
       ),

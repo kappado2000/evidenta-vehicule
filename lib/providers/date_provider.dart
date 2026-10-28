@@ -41,12 +41,12 @@ class SetariAlerte {
   }
 
   Map<String, dynamic> toFirestore() => {
-        'alertaITP': alertaITP,
-        'alertaRovinieta': alertaRovinieta,
-        'alertaAsigurare': alertaAsigurare,
-        'alertaRevizieZile': alertaRevizieZile,
-        'oraNotificare': oraNotificare,
-      };
+    'alertaITP': alertaITP,
+    'alertaRovinieta': alertaRovinieta,
+    'alertaAsigurare': alertaAsigurare,
+    'alertaRevizieZile': alertaRevizieZile,
+    'oraNotificare': oraNotificare,
+  };
 }
 
 /// Agregă toate colecțiile unui `dataOwnerUid` (vehicule + itp + rovinietă +
@@ -105,37 +105,49 @@ class DateProvider extends ChangeNotifier {
       toFirestore: (v) => v.toFirestore(),
     );
 
-    _subs.add(vehiculeRepo.asculta().listen((v) {
-      vehicule = v;
-      seIncarca = false;
-      notifyListeners();
-    }));
-    _subs.add(itpRepo.asculta().listen((v) {
-      itpuri = v;
-      notifyListeners();
-    }));
-    _subs.add(rovinietaRepo.asculta().listen((v) {
-      rovinete = v;
-      notifyListeners();
-    }));
-    _subs.add(asigurariRepo.asculta().listen((v) {
-      asigurari = v;
-      notifyListeners();
-    }));
-    _subs.add(reviziiRepo.asculta().listen((v) {
-      revizii = v;
-      notifyListeners();
-    }));
-    _subs.add(FirebaseFirestore.instance
-        .collection('users')
-        .doc(dataOwnerUid)
-        .collection('setari')
-        .doc('config')
-        .snapshots()
-        .listen((snap) {
-      setari = SetariAlerte.fromFirestore(snap.data());
-      notifyListeners();
-    }));
+    _subs.add(
+      vehiculeRepo.asculta().listen((v) {
+        vehicule = v;
+        seIncarca = false;
+        notifyListeners();
+      }),
+    );
+    _subs.add(
+      itpRepo.asculta().listen((v) {
+        itpuri = v;
+        notifyListeners();
+      }),
+    );
+    _subs.add(
+      rovinietaRepo.asculta().listen((v) {
+        rovinete = v;
+        notifyListeners();
+      }),
+    );
+    _subs.add(
+      asigurariRepo.asculta().listen((v) {
+        asigurari = v;
+        notifyListeners();
+      }),
+    );
+    _subs.add(
+      reviziiRepo.asculta().listen((v) {
+        revizii = v;
+        notifyListeners();
+      }),
+    );
+    _subs.add(
+      FirebaseFirestore.instance
+          .collection('users')
+          .doc(dataOwnerUid)
+          .collection('setari')
+          .doc('config')
+          .snapshots()
+          .listen((snap) {
+            setari = SetariAlerte.fromFirestore(snap.data());
+            notifyListeners();
+          }),
+    );
   }
 
   Future<void> salveazaSetari(SetariAlerte noi) {
@@ -170,8 +182,7 @@ class DateProvider extends ChangeNotifier {
       }
       final tsNou = timestamp(item);
       final tsExistent = timestamp(existent);
-      if (tsNou != null &&
-          (tsExistent == null || tsNou.isAfter(tsExistent))) {
+      if (tsNou != null && (tsExistent == null || tsNou.isAfter(tsExistent))) {
         ultimele[cheie(item)] = item;
       }
     }
@@ -182,73 +193,93 @@ class DateProvider extends ChangeNotifier {
     final rezultat = <Alerta>[];
 
     for (final itp in _ultimeleInregistrari(
-        itpuri, (i) => i.vehiculId, (i) => i.timestamp)) {
+      itpuri,
+      (i) => i.vehiculId,
+      (i) => i.timestamp,
+    )) {
       final dif = zilePanaLa(itp.dataExpirare);
       if (dif == null || dif > setari.alertaITP || dif < -365) continue;
       final v = vehiculDupaId(itp.vehiculId);
-      rezultat.add(Alerta(
-        tip: TipAlerta.itp,
-        vehiculId: itp.vehiculId,
-        numarVehicul: v?.nr ?? '',
-        titlu: 'ITP${v != null ? ' - ${v.nr}' : ''}',
-        mesaj: dif < 0
-            ? 'ITP expirat de ${-dif} zile'
-            : 'ITP expiră în $dif zile',
-        zileRamase: dif,
-      ));
+      rezultat.add(
+        Alerta(
+          tip: TipAlerta.itp,
+          vehiculId: itp.vehiculId,
+          numarVehicul: v?.nr ?? '',
+          titlu: 'ITP${v != null ? ' - ${v.nr}' : ''}',
+          mesaj: dif < 0
+              ? 'ITP expirat de ${-dif} zile'
+              : 'ITP expiră în $dif zile',
+          zileRamase: dif,
+        ),
+      );
     }
 
     for (final rov in _ultimeleInregistrari(
-        rovinete, (r) => r.vehiculId, (r) => r.timestamp)) {
+      rovinete,
+      (r) => r.vehiculId,
+      (r) => r.timestamp,
+    )) {
       final dif = zilePanaLa(rov.dataExpirare);
       if (dif == null || dif > setari.alertaRovinieta || dif < -365) continue;
       final v = vehiculDupaId(rov.vehiculId);
-      rezultat.add(Alerta(
-        tip: TipAlerta.rovinieta,
-        vehiculId: rov.vehiculId,
-        numarVehicul: v?.nr ?? '',
-        titlu: 'Rovinietă${v != null ? ' - ${v.nr}' : ''}',
-        mesaj: dif < 0
-            ? 'Rovinietă expirată de ${-dif} zile'
-            : 'Rovinietă expiră în $dif zile',
-        zileRamase: dif,
-      ));
+      rezultat.add(
+        Alerta(
+          tip: TipAlerta.rovinieta,
+          vehiculId: rov.vehiculId,
+          numarVehicul: v?.nr ?? '',
+          titlu: 'Rovinietă${v != null ? ' - ${v.nr}' : ''}',
+          mesaj: dif < 0
+              ? 'Rovinietă expirată de ${-dif} zile'
+              : 'Rovinietă expiră în $dif zile',
+          zileRamase: dif,
+        ),
+      );
     }
 
     for (final asig in _ultimeleInregistrari(
-        asigurari, (a) => '${a.vehiculId}_${a.tip}', (a) => a.timestamp)) {
+      asigurari,
+      (a) => '${a.vehiculId}_${a.tip}',
+      (a) => a.timestamp,
+    )) {
       final dif = zilePanaLa(asig.dataExpirare);
       if (dif == null || dif > setari.alertaAsigurare || dif < -365) continue;
       final v = vehiculDupaId(asig.vehiculId);
-      rezultat.add(Alerta(
-        tip: TipAlerta.asigurare,
-        vehiculId: asig.vehiculId,
-        numarVehicul: v?.nr ?? '',
-        titlu: '${asig.tip}${v != null ? ' - ${v.nr}' : ''}',
-        mesaj: dif < 0
-            ? '${asig.tip} expirată de ${-dif} zile'
-            : '${asig.tip} expiră în $dif zile',
-        zileRamase: dif,
-      ));
+      rezultat.add(
+        Alerta(
+          tip: TipAlerta.asigurare,
+          vehiculId: asig.vehiculId,
+          numarVehicul: v?.nr ?? '',
+          titlu: '${asig.tip}${v != null ? ' - ${v.nr}' : ''}',
+          mesaj: dif < 0
+              ? '${asig.tip} expirată de ${-dif} zile'
+              : '${asig.tip} expiră în $dif zile',
+          zileRamase: dif,
+        ),
+      );
     }
 
     for (final rev in _ultimeleInregistrari(
-        revizii, (r) => r.vehiculId, (r) => r.timestamp)) {
+      revizii,
+      (r) => r.vehiculId,
+      (r) => r.timestamp,
+    )) {
       final dif = zilePanaLa(rev.proximData);
       if (dif == null || dif > setari.alertaRevizieZile || dif < -365) {
         continue;
       }
       final v = vehiculDupaId(rev.vehiculId);
-      rezultat.add(Alerta(
-        tip: TipAlerta.revizie,
-        vehiculId: rev.vehiculId,
-        numarVehicul: v?.nr ?? '',
-        titlu: 'Revizie${v != null ? ' - ${v.nr}' : ''}',
-        mesaj: dif < 0
-            ? 'Revizie restantă de ${-dif} zile'
-            : 'Revizie recomandată în $dif zile',
-        zileRamase: dif,
-      ));
+      rezultat.add(
+        Alerta(
+          tip: TipAlerta.revizie,
+          vehiculId: rev.vehiculId,
+          numarVehicul: v?.nr ?? '',
+          titlu: 'Revizie${v != null ? ' - ${v.nr}' : ''}',
+          mesaj: dif < 0
+              ? 'Revizie restantă de ${-dif} zile'
+              : 'Revizie recomandată în $dif zile',
+          zileRamase: dif,
+        ),
+      );
     }
 
     rezultat.sort((a, b) => a.zileRamase.compareTo(b.zileRamase));

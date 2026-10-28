@@ -30,11 +30,15 @@ class _GarajScreenState extends State<GarajScreen> {
     try {
       final trimis = await _garajService.invitaMembru(email);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(trimis
-              ? 'Invitație trimisă către $email.'
-              : 'Invitație creată, dar emailul nu s-a putut trimite.'),
-        ));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              trimis
+                  ? 'Invitație trimisă către $email.'
+                  : 'Invitație creată, dar emailul nu s-a putut trimite.',
+            ),
+          ),
+        );
         _emailCtrl.clear();
       }
     } catch (e) {
@@ -63,14 +67,17 @@ class _GarajScreenState extends State<GarajScreen> {
                   .snapshots(),
               builder: (context, snap) {
                 final membriInfo = Map<String, dynamic>.from(
-                    snap.data?.data()?['membriInfo'] as Map? ?? {});
+                  snap.data?.data()?['membriInfo'] as Map? ?? {},
+                );
                 final owner = snap.data?.data()?['owner'] as String?;
 
                 return ListView(
                   padding: const EdgeInsets.all(16),
                   children: [
-                    Text('Membri garaj',
-                        style: Theme.of(context).textTheme.titleMedium),
+                    Text(
+                      'Membri garaj',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
                     const SizedBox(height: 8),
                     if (membriInfo.isEmpty)
                       const Text('Se încarcă...')
@@ -86,7 +93,9 @@ class _GarajScreenState extends State<GarajScreen> {
                             subtitle: Text(esteOwner ? 'Proprietar' : 'Membru'),
                             trailing: (auth.esteProprietar && !esteOwner)
                                 ? IconButton(
-                                    icon: const Icon(Icons.person_remove_outlined),
+                                    icon: const Icon(
+                                      Icons.person_remove_outlined,
+                                    ),
                                     onPressed: () async {
                                       await _garajService.eliminaMembru(uid);
                                     },
@@ -97,34 +106,44 @@ class _GarajScreenState extends State<GarajScreen> {
                       }),
                     if (auth.esteProprietar) ...[
                       const SizedBox(height: 24),
-                      Text('Invită un membru nou',
-                          style: Theme.of(context).textTheme.titleMedium),
+                      Text(
+                        'Invită un membru nou',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
                       const SizedBox(height: 8),
-                      Row(children: [
-                        Expanded(
-                          child: TextField(
-                            controller: _emailCtrl,
-                            keyboardType: TextInputType.emailAddress,
-                            decoration: const InputDecoration(
-                                labelText: 'Email', border: OutlineInputBorder()),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              controller: _emailCtrl,
+                              keyboardType: TextInputType.emailAddress,
+                              decoration: const InputDecoration(
+                                labelText: 'Email',
+                                border: OutlineInputBorder(),
+                              ),
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        FilledButton(
-                          onPressed: _seInvita ? null : _invita,
-                          child: _seInvita
-                              ? const SizedBox(
-                                  width: 16,
-                                  height: 16,
-                                  child: CircularProgressIndicator(strokeWidth: 2))
-                              : const Text('Invită'),
-                        ),
-                      ]),
+                          const SizedBox(width: 8),
+                          FilledButton(
+                            onPressed: _seInvita ? null : _invita,
+                            child: _seInvita
+                                ? const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : const Text('Invită'),
+                          ),
+                        ],
+                      ),
                     ] else
                       const Padding(
                         padding: EdgeInsets.only(top: 16),
                         child: Text(
-                            'Doar proprietarul garajului poate invita sau elimina membri.'),
+                          'Doar proprietarul garajului poate invita sau elimina membri.',
+                        ),
                       ),
                   ],
                 );

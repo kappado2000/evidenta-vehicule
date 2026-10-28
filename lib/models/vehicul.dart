@@ -44,8 +44,9 @@ class Vehicul {
   factory Vehicul.fromFirestore(String id, Map<String, dynamic> data) {
     return Vehicul(
       id: id,
-      nr: (data['nr'] ?? data['nrInmatriculare'] ?? data['numar'] ?? '')
-          as String,
+      nr:
+          (data['nr'] ?? data['nrInmatriculare'] ?? data['numar'] ?? '')
+              as String,
       marca: data['marca'] as String? ?? '',
       model: data['model'] as String? ?? '',
       an: (data['an'] as num?)?.toInt(),

@@ -26,23 +26,27 @@ class CosturiScreen extends StatelessWidget {
                 children: [
                   const Text('Total cheltuit anul curent'),
                   const SizedBox(height: 4),
-                  Text('${total.toStringAsFixed(0)} lei',
-                      style: Theme.of(context)
-                          .textTheme
-                          .headlineMedium
-                          ?.copyWith(fontWeight: FontWeight.bold)),
+                  Text(
+                    '${total.toStringAsFixed(0)} lei',
+                    style: Theme.of(context).textTheme.headlineMedium
+                        ?.copyWith(fontWeight: FontWeight.bold),
+                  ),
                 ],
               ),
             ),
           ),
           const SizedBox(height: 16),
-          ...costuri.entries.map((e) => Card(
-                child: ListTile(
-                  title: Text(e.key),
-                  trailing: Text('${e.value.toStringAsFixed(0)} lei',
-                      style: const TextStyle(fontWeight: FontWeight.bold)),
+          ...costuri.entries.map(
+            (e) => Card(
+              child: ListTile(
+                title: Text(e.key),
+                trailing: Text(
+                  '${e.value.toStringAsFixed(0)} lei',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
-              )),
+              ),
+            ),
+          ),
         ],
       ),
     );

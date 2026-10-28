@@ -7,19 +7,36 @@ import '../../utils/date_utils.dart';
 
 class RovinietaFormScreen extends StatefulWidget {
   final String vehiculId;
+  final Rovinieta? rovinieta;
 
-  const RovinietaFormScreen({super.key, required this.vehiculId});
+  const RovinietaFormScreen({
+    super.key,
+    required this.vehiculId,
+    this.rovinieta,
+  });
 
   @override
   State<RovinietaFormScreen> createState() => _RovinietaFormScreenState();
 }
 
 class _RovinietaFormScreenState extends State<RovinietaFormScreen> {
-  String _tip = 'anuala';
-  String _dataInceput = azIso();
-  String _dataExpirare = '';
-  final _costCtrl = TextEditingController();
+  late String _tip;
+  late String _dataInceput;
+  late String _dataExpirare;
+  late final TextEditingController _costCtrl;
   bool _seSalveaza = false;
+
+  bool get _editare => widget.rovinieta != null;
+
+  @override
+  void initState() {
+    super.initState();
+    final r = widget.rovinieta;
+    _tip = r?.tip ?? 'anuala';
+    _dataInceput = r?.dataInceput ?? azIso();
+    _dataExpirare = r?.dataExpirare ?? '';
+    _costCtrl = TextEditingController(text: r?.cost.toString() ?? '');
+  }
 
   @override
   void dispose() {
@@ -30,7 +47,7 @@ class _RovinietaFormScreenState extends State<RovinietaFormScreen> {
   Future<void> _aleg(bool inceput) async {
     final initial =
         DateTime.tryParse(inceput ? _dataInceput : _dataExpirare) ??
-            DateTime.now();
+        DateTime.now();
     final rezultat = await showDatePicker(
       context: context,
       initialDate: initial,
@@ -58,15 +75,20 @@ class _RovinietaFormScreenState extends State<RovinietaFormScreen> {
     setState(() => _seSalveaza = true);
     final date = context.read<DateProvider>();
     final rov = Rovinieta(
-      id: '',
+      id: widget.rovinieta?.id ?? '',
       vehiculId: widget.vehiculId,
       tip: _tip,
       dataInceput: _dataInceput,
       dataExpirare: _dataExpirare,
       cost: num.tryParse(_costCtrl.text) ?? 0,
+      documente: widget.rovinieta?.documente ?? const [],
     );
     try {
-      await date.rovinietaRepo.adauga(rov);
+      if (_editare) {
+        await date.rovinietaRepo.actualizeaza(rov.id, rov);
+      } else {
+        await date.rovinietaRepo.adauga(rov);
+      }
       if (mounted) Navigator.of(context).pop();
     } finally {
       if (mounted) setState(() => _seSalveaza = false);
@@ -77,7 +99,7 @@ class _RovinietaFormScreenState extends State<RovinietaFormScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Rovinietă nouă'),
+        title: Text(_editare ? 'Editează rovinietă' : 'Rovinietă nouă'),
         actions: [
           IconButton(
             onPressed: _seSalveaza ? null : _salveaza,
@@ -91,7 +113,9 @@ class _RovinietaFormScreenState extends State<RovinietaFormScreen> {
           DropdownButtonFormField<String>(
             initialValue: _tip,
             decoration: const InputDecoration(
-                labelText: 'Tip', border: OutlineInputBorder()),
+              labelText: 'Tip',
+              border: OutlineInputBorder(),
+            ),
             items: tipuriRovinieta
                 .map((t) => DropdownMenuItem(value: t, child: Text(t)))
                 .toList(),
@@ -106,9 +130,11 @@ class _RovinietaFormScreenState extends State<RovinietaFormScreen> {
           ),
           ListTile(
             title: const Text('Data expirării *'),
-            subtitle: Text(_dataExpirare.isEmpty
-                ? 'Alege o dată'
-                : formateazaDataRo(_dataExpirare)),
+            subtitle: Text(
+              _dataExpirare.isEmpty
+                  ? 'Alege o dată'
+                  : formateazaDataRo(_dataExpirare),
+            ),
             trailing: const Icon(Icons.calendar_today_outlined),
             onTap: () => _aleg(false),
           ),
@@ -117,7 +143,9 @@ class _RovinietaFormScreenState extends State<RovinietaFormScreen> {
             controller: _costCtrl,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             decoration: const InputDecoration(
-                labelText: 'Cost (lei)', border: OutlineInputBorder()),
+              labelText: 'Cost (lei)',
+              border: OutlineInputBorder(),
+            ),
           ),
         ],
       ),
