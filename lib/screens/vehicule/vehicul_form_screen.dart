@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
@@ -8,6 +9,7 @@ import 'package:provider/provider.dart';
 import '../../models/vehicul.dart';
 import '../../providers/date_provider.dart';
 import '../../services/storage_service.dart';
+import '../../services/vin_scanner.dart';
 
 const List<String> _tipuriCombustibil = [
   'Benzină',
@@ -45,6 +47,7 @@ class _VehiculFormScreenState extends State<VehiculFormScreen> {
   String _fotoPath = '';
   XFile? _fotoNoua;
   bool _seSalveaza = false;
+  bool _seScaneazaVin = false;
 
   bool get _editare => widget.vehicul != null;
 
@@ -125,6 +128,38 @@ class _VehiculFormScreenState extends State<VehiculFormScreen> {
         mimeType: 'image/jpeg',
       ),
     );
+  }
+
+  /// Fotografiază VIN-ul (parbriz, montant ușă sau talon) și completează
+  /// automat câmpul, dacă recunoaște o serie de 17 caractere validă. Doar
+  /// pe iOS/Android — pe web `google_mlkit_text_recognition` nu rulează.
+  Future<void> _scaneazaVin() async {
+    final fisier = await ImagePicker().pickImage(
+      source: ImageSource.camera,
+      imageQuality: 85,
+    );
+    if (fisier == null) return;
+
+    setState(() => _seScaneazaVin = true);
+    try {
+      final vin = await recunoasteVinDinFisier(fisier.path);
+      if (!mounted) return;
+      if (vin != null) {
+        setState(() => _vinCtrl.text = vin);
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('VIN găsit: $vin')));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Nu am găsit un VIN valid în poză. Încearcă din nou, cu mai multă lumină, sau completează-l manual.',
+            ),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _seScaneazaVin = false);
+    }
   }
 
   Future<void> _salveaza() async {
@@ -321,9 +356,24 @@ class _VehiculFormScreenState extends State<VehiculFormScreen> {
             TextFormField(
               controller: _vinCtrl,
               textCapitalization: TextCapitalization.characters,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'VIN (serie șasiu)',
-                border: OutlineInputBorder(),
+                border: const OutlineInputBorder(),
+                suffixIcon: kIsWeb
+                    ? null
+                    : IconButton(
+                        tooltip: 'Scanează VIN cu camera',
+                        icon: _seScaneazaVin
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Icon(Icons.camera_alt_outlined),
+                        onPressed: _seScaneazaVin ? null : _scaneazaVin,
+                      ),
               ),
             ),
             const SizedBox(height: 12),
