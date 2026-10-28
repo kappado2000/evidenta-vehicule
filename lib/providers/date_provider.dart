@@ -13,7 +13,8 @@ import '../services/firestore_repo.dart';
 import '../utils/date_utils.dart';
 
 /// Praguri de alertă + ora de notificare, din `users/{dataOwnerUid}/setari/config`.
-/// Valorile implicite sunt identice cu cele din functions/index.js.
+/// Valorile implicite sunt cele cerute de user pentru Evidența Auto (diferite
+/// de cele din PWA/functions/index.js, care rămân neschimbate acolo).
 class SetariAlerte {
   final int alertaITP;
   final int alertaRovinieta;
@@ -22,20 +23,20 @@ class SetariAlerte {
   final int oraNotificare;
 
   const SetariAlerte({
-    this.alertaITP = 30,
-    this.alertaRovinieta = 15,
-    this.alertaAsigurare = 15,
-    this.alertaRevizieZile = 30,
+    this.alertaITP = 10,
+    this.alertaRovinieta = 3,
+    this.alertaAsigurare = 3,
+    this.alertaRevizieZile = 7,
     this.oraNotificare = 8,
   });
 
   factory SetariAlerte.fromFirestore(Map<String, dynamic>? data) {
     if (data == null) return const SetariAlerte();
     return SetariAlerte(
-      alertaITP: (data['alertaITP'] as num?)?.toInt() ?? 30,
-      alertaRovinieta: (data['alertaRovinieta'] as num?)?.toInt() ?? 15,
-      alertaAsigurare: (data['alertaAsigurare'] as num?)?.toInt() ?? 15,
-      alertaRevizieZile: (data['alertaRevizieZile'] as num?)?.toInt() ?? 30,
+      alertaITP: (data['alertaITP'] as num?)?.toInt() ?? 10,
+      alertaRovinieta: (data['alertaRovinieta'] as num?)?.toInt() ?? 3,
+      alertaAsigurare: (data['alertaAsigurare'] as num?)?.toInt() ?? 3,
+      alertaRevizieZile: (data['alertaRevizieZile'] as num?)?.toInt() ?? 7,
       oraNotificare: (data['oraNotificare'] as num?)?.toInt() ?? 8,
     );
   }

@@ -33,10 +33,10 @@ class _SetariScreenState extends State<SetariScreen> {
   Future<void> _salveaza(DateProvider date) async {
     await date.salveazaSetari(
       SetariAlerte(
-        alertaITP: int.tryParse(_itpCtrl.text) ?? 30,
-        alertaRovinieta: int.tryParse(_rovCtrl.text) ?? 15,
-        alertaAsigurare: int.tryParse(_asigCtrl.text) ?? 15,
-        alertaRevizieZile: int.tryParse(_revCtrl.text) ?? 30,
+        alertaITP: int.tryParse(_itpCtrl.text) ?? 10,
+        alertaRovinieta: int.tryParse(_rovCtrl.text) ?? 3,
+        alertaAsigurare: int.tryParse(_asigCtrl.text) ?? 3,
+        alertaRevizieZile: int.tryParse(_revCtrl.text) ?? 7,
         oraNotificare: _oraNotificare,
       ),
     );
