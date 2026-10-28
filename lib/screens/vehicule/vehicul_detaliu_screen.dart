@@ -122,7 +122,15 @@ class _VehiculDetaliuScreenState extends State<VehiculDetaliuScreen> {
               child: Container(
                 height: 220,
                 width: double.infinity,
-                color: Theme.of(context).colorScheme.surfaceContainer,
+                clipBehavior: Clip.antiAlias,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: Theme.of(context).colorScheme.outlineVariant,
+                    width: 1.5,
+                  ),
+                  color: Theme.of(context).colorScheme.surfaceContainer,
+                ),
                 child: Image.network(
                   vehicul.fotoUrl,
                   fit: BoxFit.contain,
@@ -255,6 +263,7 @@ class _VehiculDetaliuScreenState extends State<VehiculDetaliuScreen> {
                 _Sectiune<Itp>(
                   titlu: 'ITP',
                   icon: Icons.fact_check_outlined,
+                  culoareCategorie: Colors.blue,
                   items: itpuri,
                   idItem: (i) => i.id,
                   subtitluItem: (i) =>
@@ -276,6 +285,7 @@ class _VehiculDetaliuScreenState extends State<VehiculDetaliuScreen> {
                 _Sectiune<Rovinieta>(
                   titlu: 'Rovinietă',
                   icon: Icons.toll_outlined,
+                  culoareCategorie: Colors.deepOrange,
                   items: rovinete,
                   idItem: (r) => r.id,
                   subtitluItem: (r) =>
@@ -299,6 +309,7 @@ class _VehiculDetaliuScreenState extends State<VehiculDetaliuScreen> {
                 _Sectiune<Asigurare>(
                   titlu: 'Asigurări',
                   icon: Icons.shield_outlined,
+                  culoareCategorie: Colors.green,
                   items: asigurari,
                   idItem: (a) => a.id,
                   subtitluItem: (a) =>
@@ -322,6 +333,7 @@ class _VehiculDetaliuScreenState extends State<VehiculDetaliuScreen> {
                 _Sectiune<Revizie>(
                   titlu: 'Revizii',
                   icon: Icons.build_outlined,
+                  culoareCategorie: Colors.deepPurple,
                   items: revizii,
                   idItem: (r) => r.id,
                   subtitluItem: (r) =>
@@ -405,6 +417,7 @@ Widget _randDate(BuildContext context, String eticheta, String valoare) {
 class _Sectiune<T> extends StatelessWidget {
   final String titlu;
   final IconData icon;
+  final Color culoareCategorie;
   final List<T> items;
   final String Function(T) idItem;
   final String Function(T) subtitluItem;
@@ -416,6 +429,7 @@ class _Sectiune<T> extends StatelessWidget {
   const _Sectiune({
     required this.titlu,
     required this.icon,
+    required this.culoareCategorie,
     required this.items,
     required this.idItem,
     required this.subtitluItem,
@@ -473,8 +487,13 @@ class _Sectiune<T> extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       // Antetul categoriei (card) rămâne pe un ton mai închis decât
       // înregistrările de dedesubt, ca să se vadă clar diferența dintre
-      // „categorie" și „înregistrare" (cerut explicit de user).
-      color: culori.surfaceContainerHighest,
+      // „categorie" și „înregistrare" - plus tenta proprie fiecărei
+      // categorii (ITP/Rovinietă/Asigurări/Revizii), ca să se deosebească
+      // una de alta la toate vehiculele.
+      color: Color.alphaBlend(
+        culoareCategorie.withValues(alpha: 0.22),
+        culori.surfaceContainerHighest,
+      ),
       child: ExpansionTile(
         leading: Icon(icon),
         title: Row(
@@ -504,7 +523,10 @@ class _Sectiune<T> extends StatelessWidget {
             // înregistrare să fie vizibil distinctă de vecinele ei și de
             // antetul mai închis de deasupra.
             Container(
-              color: index.isEven ? culori.surface : culori.surfaceContainerLow,
+              color: Color.alphaBlend(
+                culoareCategorie.withValues(alpha: index.isEven ? 0.05 : 0.1),
+                culori.surface,
+              ),
               child: Column(
                 children: [
                   if (index > 0) const Divider(height: 1),
@@ -544,7 +566,11 @@ class _Sectiune<T> extends StatelessWidget {
             color: culori.surface,
             padding: const EdgeInsets.all(8),
             width: double.infinity,
-            child: OutlinedButton.icon(
+            child: FilledButton.icon(
+              style: FilledButton.styleFrom(
+                backgroundColor: culori.primary,
+                foregroundColor: culori.onPrimary,
+              ),
               onPressed: onAdauga,
               icon: const Icon(Icons.add),
               label: Text('Adaugă $titlu'),
@@ -676,13 +702,20 @@ class _SectiuneDocumenteState extends State<_SectiuneDocumente> {
         ],
         Padding(
           padding: const EdgeInsets.all(8),
-          child: OutlinedButton.icon(
+          child: FilledButton.icon(
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              foregroundColor: Theme.of(context).colorScheme.onPrimary,
+            ),
             onPressed: _seIncarca ? null : _adauga,
             icon: _seIncarca
                 ? const SizedBox(
                     width: 16,
                     height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
                   )
                 : const Icon(Icons.add),
             label: Text('Adaugă ${widget.titlu}'),

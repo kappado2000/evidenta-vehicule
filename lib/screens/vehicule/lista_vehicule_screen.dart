@@ -53,25 +53,30 @@ class _CardVehicul extends StatelessWidget {
     return Card(
       clipBehavior: Clip.antiAlias,
       child: ListTile(
-        // Pătrat cu colțuri teșite (stil iconiță iOS), nu cerc - vehiculul
-        // se încadrează mai bine într-un dreptunghi decât într-un cerc.
-        leading: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: Container(
-            width: 52,
-            height: 52,
+        // Pătrat cu colțuri teșite (stil iconiță iOS) + bordură, nu cerc -
+        // vehiculul se încadrează mai bine într-un dreptunghi decât în cerc.
+        leading: Container(
+          width: 52,
+          height: 52,
+          clipBehavior: Clip.antiAlias,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: Theme.of(context).colorScheme.outlineVariant,
+              width: 1.5,
+            ),
             color: Theme.of(context).colorScheme.primaryContainer,
-            child: vehicul.fotoUrl.isEmpty
-                ? Icon(
-                    Icons.directions_car,
-                    color: Theme.of(context).colorScheme.onPrimaryContainer,
-                  )
-                : Image.network(
-                    vehicul.fotoUrl,
-                    fit: BoxFit.cover,
-                    webHtmlElementStrategy: WebHtmlElementStrategy.fallback,
-                  ),
           ),
+          child: vehicul.fotoUrl.isEmpty
+              ? Icon(
+                  Icons.directions_car,
+                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                )
+              : Image.network(
+                  vehicul.fotoUrl,
+                  fit: BoxFit.cover,
+                  webHtmlElementStrategy: WebHtmlElementStrategy.fallback,
+                ),
         ),
         title: Text(
           vehicul.nr,
