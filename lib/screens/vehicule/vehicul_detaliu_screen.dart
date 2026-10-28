@@ -527,7 +527,12 @@ class _Sectiune<T> extends StatelessWidget {
                           style: const TextStyle(fontSize: 12),
                         ),
                       ),
-                      title: Text(subtitluItem(item)),
+                      title: Text(
+                        subtitluItem(item),
+                        style: const TextStyle(fontSize: 12),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                       trailing: const Icon(Icons.chevron_right, size: 20),
                       onTap: () => onEditeaza(item),
                     ),
