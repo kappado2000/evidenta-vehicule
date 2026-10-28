@@ -154,7 +154,7 @@ class VehiculDetaliuScreen extends StatelessWidget {
           ),
           _Sectiune<Rovinieta>(
             titlu: 'Rovinietă',
-            icon: Icons.route_outlined,
+            icon: Icons.toll_outlined,
             items: rovinete,
             idItem: (r) => r.id,
             subtitluItem: (r) =>

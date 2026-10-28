@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
@@ -90,7 +91,40 @@ class _VehiculFormScreenState extends State<VehiculFormScreen> {
       source: ImageSource.gallery,
       imageQuality: 80,
     );
-    if (fisier != null) setState(() => _fotoNoua = fisier);
+    if (fisier == null) return;
+
+    // Decupare manuală: userul alege singur cadrul fotografiei, fără
+    // raport de aspect impus — FotoUrl se afișa altfel decupat automat
+    // de BoxFit.cover, fără niciun control din partea userului.
+    if (!mounted) return;
+    final decupat = await ImageCropper().cropImage(
+      sourcePath: fisier.path,
+      compressFormat: ImageCompressFormat.jpg,
+      compressQuality: 85,
+      uiSettings: [
+        AndroidUiSettings(
+          toolbarTitle: 'Decupează fotografia',
+          lockAspectRatio: false,
+          freeStyleCropEnabled: true,
+        ),
+        IOSUiSettings(
+          title: 'Decupează fotografia',
+          aspectRatioLockEnabled: false,
+          resetAspectRatioEnabled: true,
+        ),
+        WebUiSettings(context: context),
+      ],
+    );
+    if (decupat == null) return;
+
+    final bytes = await decupat.readAsBytes();
+    setState(
+      () => _fotoNoua = XFile.fromData(
+        bytes,
+        name: fisier.name,
+        mimeType: 'image/jpeg',
+      ),
+    );
   }
 
   Future<void> _salveaza() async {

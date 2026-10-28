@@ -12,7 +12,7 @@ class DashboardScreen extends StatelessWidget {
       case TipAlerta.itp:
         return Icons.fact_check_outlined;
       case TipAlerta.rovinieta:
-        return Icons.route_outlined;
+        return Icons.toll_outlined;
       case TipAlerta.asigurare:
         return Icons.shield_outlined;
       case TipAlerta.revizie:
@@ -45,21 +45,91 @@ class DashboardScreen extends StatelessWidget {
               itemBuilder: (context, i) {
                 final a = date.alerte[i];
                 final culoare = a.expirat
-                    ? Colors.red
+                    ? Colors.red.shade700
                     : a.zileRamase <= 7
-                    ? Colors.orange
-                    : Colors.amber.shade700;
+                    ? Colors.orange.shade800
+                    : Colors.amber.shade800;
                 return Card(
-                  child: ListTile(
-                    leading: Icon(_iconaPentru(a.tip), color: culoare),
-                    title: Text(a.titlu),
-                    subtitle: Text(a.mesaj),
-                    trailing: Text(
-                      a.expirat ? '${-a.zileRamase}z' : '${a.zileRamase}z',
-                      style: TextStyle(
-                        color: culoare,
-                        fontWeight: FontWeight.bold,
-                      ),
+                  clipBehavior: Clip.antiAlias,
+                  elevation: 0,
+                  surfaceTintColor: Colors.transparent,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    side: BorderSide(color: culoare.withValues(alpha: 0.4)),
+                  ),
+                  color: culoare.withValues(alpha: 0.08),
+                  child: IntrinsicHeight(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Container(width: 5, color: culoare),
+                        Expanded(
+                          child: ListTile(
+                            leading: Stack(
+                              clipBehavior: Clip.none,
+                              children: [
+                                CircleAvatar(
+                                  backgroundColor: culoare.withValues(
+                                    alpha: 0.15,
+                                  ),
+                                  child: Icon(
+                                    _iconaPentru(a.tip),
+                                    color: culoare,
+                                  ),
+                                ),
+                                if (a.expirat || a.zileRamase <= 7)
+                                  Positioned(
+                                    right: -2,
+                                    top: -2,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(2),
+                                      decoration: BoxDecoration(
+                                        color: culoare,
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .surface,
+                                          width: 1.5,
+                                        ),
+                                      ),
+                                      child: const Icon(
+                                        Icons.priority_high,
+                                        size: 10,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                            title: Text(
+                              a.titlu,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            subtitle: Text(a.mesaj),
+                            trailing: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: culoare,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                a.expirat ? 'EXPIRAT' : '${a.zileRamase}z',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 );
