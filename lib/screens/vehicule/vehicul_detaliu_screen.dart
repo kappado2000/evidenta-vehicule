@@ -17,13 +17,21 @@ import '../revizii/revizie_form_screen.dart';
 import '../rovinieta/rovinieta_form_screen.dart';
 import 'vehicul_form_screen.dart';
 
-class VehiculDetaliuScreen extends StatelessWidget {
+class VehiculDetaliuScreen extends StatefulWidget {
   final String vehiculId;
 
   const VehiculDetaliuScreen({super.key, required this.vehiculId});
 
   @override
+  State<VehiculDetaliuScreen> createState() => _VehiculDetaliuScreenState();
+}
+
+class _VehiculDetaliuScreenState extends State<VehiculDetaliuScreen> {
+  bool _arataDocumente = false;
+
+  @override
   Widget build(BuildContext context) {
+    final vehiculId = widget.vehiculId;
     final date = context.watch<DateProvider>();
     final vehicul = date.vehiculDupaId(vehiculId);
 
@@ -99,172 +107,274 @@ class VehiculDetaliuScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(12),
+      body: Column(
         children: [
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (vehicul.fotoUrl.isNotEmpty)
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Container(
-                        height: 160,
-                        width: double.infinity,
-                        color: Theme.of(context).colorScheme.surfaceContainer,
-                        child: Image.network(
-                          vehicul.fotoUrl,
-                          fit: BoxFit.contain,
-                          webHtmlElementStrategy:
-                              WebHtmlElementStrategy.fallback,
+          // Poza pe toată lățimea ecranului, scoasă din card - nu mai e
+          // limitată de padding-ul listei de dedesubt.
+          if (vehicul.fotoUrl.isNotEmpty)
+            GestureDetector(
+              onDoubleTap: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  fullscreenDialog: true,
+                  builder: (_) => _FotoIntreagaScreen(url: vehicul.fotoUrl),
+                ),
+              ),
+              child: Container(
+                height: 220,
+                width: double.infinity,
+                color: Theme.of(context).colorScheme.surfaceContainer,
+                child: Image.network(
+                  vehicul.fotoUrl,
+                  fit: BoxFit.contain,
+                  webHtmlElementStrategy: WebHtmlElementStrategy.fallback,
+                ),
+              ),
+            ),
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.all(12),
+              children: [
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          vehicul.numeAfisat,
+                          style: Theme.of(context).textTheme.titleMedium,
                         ),
+                        const SizedBox(height: 6),
+                        // Atingi descrierea/observațiile ca să arăți/ascunzi
+                        // talonul și cartea de identitate - nu mai stau mereu
+                        // vizibile sub datele vehiculului.
+                        InkWell(
+                          onTap: () => setState(
+                            () => _arataDocumente = !_arataDocumente,
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (vehicul.an != null)
+                                _randDate(context, 'An', '${vehicul.an}'),
+                              if (vehicul.km != null)
+                                _randDate(context, 'Km', '${vehicul.km}'),
+                              if (vehicul.combustibil.isNotEmpty)
+                                _randDate(
+                                  context,
+                                  'Combustibil',
+                                  vehicul.combustibil,
+                                ),
+                              if (vehicul.vin.isNotEmpty)
+                                _randDate(context, 'VIN', vehicul.vin),
+                              if (vehicul.culoare.isNotEmpty)
+                                _randDate(context, 'Culoare', vehicul.culoare),
+                              if (vehicul.putereCP != null)
+                                _randDate(
+                                  context,
+                                  'Putere',
+                                  '${vehicul.putereCP} CP',
+                                ),
+                              if (vehicul.capacitateCilindrica != null)
+                                _randDate(
+                                  context,
+                                  'Capacitate',
+                                  '${vehicul.capacitateCilindrica} cmc',
+                                ),
+                              if (vehicul.anvelope.isNotEmpty)
+                                _randDate(
+                                  context,
+                                  'Anvelope',
+                                  vehicul.anvelope,
+                                ),
+                              if (vehicul.observatii.isNotEmpty) ...[
+                                const Divider(height: 16),
+                                _randDate(
+                                  context,
+                                  'Observații',
+                                  vehicul.observatii,
+                                ),
+                              ],
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  Icon(
+                                    _arataDocumente
+                                        ? Icons.expand_less
+                                        : Icons.expand_more,
+                                    size: 16,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .primary,
+                                  ),
+                                  const SizedBox(width: 2),
+                                  Text(
+                                    _arataDocumente ? 'Ascunde actele' : 'Atinge pentru talon și carte de identitate',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .primary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (_arataDocumente) ...[
+                          const Divider(height: 24),
+                          _SectiuneDocumente(
+                            titlu: 'Talon',
+                            icon: Icons.description_outlined,
+                            fisiere: vehicul.talon,
+                            dataOwnerUid: date.dataOwnerUid,
+                            onActualizeaza: (nouaLista) =>
+                                date.vehiculeRepo.actualizeaza(
+                                  vehicul.id,
+                                  vehicul.copyWith(talon: nouaLista),
+                                ),
+                          ),
+                          _SectiuneDocumente(
+                            titlu: 'Carte de identitate',
+                            icon: Icons.badge_outlined,
+                            fisiere: vehicul.carteIdentitate,
+                            dataOwnerUid: date.dataOwnerUid,
+                            onActualizeaza: (nouaLista) =>
+                                date.vehiculeRepo.actualizeaza(
+                                  vehicul.id,
+                                  vehicul.copyWith(carteIdentitate: nouaLista),
+                                ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                _Sectiune<Itp>(
+                  titlu: 'ITP',
+                  icon: Icons.fact_check_outlined,
+                  items: itpuri,
+                  idItem: (i) => i.id,
+                  subtitluItem: (i) =>
+                      'Expiră: ${formateazaDataRo(i.dataExpirare)} · ${i.cost.toStringAsFixed(0)} lei',
+                  zileRamaseItem: (i) => zilePanaLa(i.dataExpirare),
+                  onAdauga: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => ItpFormScreen(vehiculId: vehiculId),
+                    ),
+                  ),
+                  onEditeaza: (itp) => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          ItpFormScreen(vehiculId: vehiculId, itp: itp),
+                    ),
+                  ),
+                  onSterge: (id) => date.itpRepo.sterge(id),
+                ),
+                _Sectiune<Rovinieta>(
+                  titlu: 'Rovinietă',
+                  icon: Icons.toll_outlined,
+                  items: rovinete,
+                  idItem: (r) => r.id,
+                  subtitluItem: (r) =>
+                      '${r.tip} · expiră: ${formateazaDataRo(r.dataExpirare)} · ${r.cost.toStringAsFixed(0)} lei',
+                  zileRamaseItem: (r) => zilePanaLa(r.dataExpirare),
+                  onAdauga: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => RovinietaFormScreen(vehiculId: vehiculId),
+                    ),
+                  ),
+                  onEditeaza: (rov) => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => RovinietaFormScreen(
+                        vehiculId: vehiculId,
+                        rovinieta: rov,
                       ),
                     ),
-                  const SizedBox(height: 8),
-                  Text(
-                    vehicul.numeAfisat,
-                    style: Theme.of(context).textTheme.titleMedium,
                   ),
-                  const SizedBox(height: 6),
-                  if (vehicul.an != null)
-                    _randDate(context, 'An', '${vehicul.an}'),
-                  if (vehicul.km != null)
-                    _randDate(context, 'Km', '${vehicul.km}'),
-                  if (vehicul.combustibil.isNotEmpty)
-                    _randDate(context, 'Combustibil', vehicul.combustibil),
-                  if (vehicul.vin.isNotEmpty)
-                    _randDate(context, 'VIN', vehicul.vin),
-                  if (vehicul.culoare.isNotEmpty)
-                    _randDate(context, 'Culoare', vehicul.culoare),
-                  if (vehicul.putereCP != null)
-                    _randDate(context, 'Putere', '${vehicul.putereCP} CP'),
-                  if (vehicul.capacitateCilindrica != null)
-                    _randDate(
-                      context,
-                      'Capacitate',
-                      '${vehicul.capacitateCilindrica} cmc',
+                  onSterge: (id) => date.rovinietaRepo.sterge(id),
+                ),
+                _Sectiune<Asigurare>(
+                  titlu: 'Asigurări',
+                  icon: Icons.shield_outlined,
+                  items: asigurari,
+                  idItem: (a) => a.id,
+                  subtitluItem: (a) =>
+                      '${a.tip} · ${a.furnizor} · expiră: ${formateazaDataRo(a.dataExpirare)} · ${a.cost.toStringAsFixed(0)} lei',
+                  zileRamaseItem: (a) => zilePanaLa(a.dataExpirare),
+                  onAdauga: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => AsigurareFormScreen(vehiculId: vehiculId),
                     ),
-                  if (vehicul.anvelope.isNotEmpty)
-                    _randDate(context, 'Anvelope', vehicul.anvelope),
-                  if (vehicul.observatii.isNotEmpty) ...[
-                    const Divider(height: 16),
-                    _randDate(context, 'Observații', vehicul.observatii),
-                  ],
-                  const Divider(height: 24),
-                  _SectiuneDocumente(
-                    titlu: 'Talon',
-                    icon: Icons.description_outlined,
-                    fisiere: vehicul.talon,
-                    dataOwnerUid: date.dataOwnerUid,
-                    onActualizeaza: (nouaLista) =>
-                        date.vehiculeRepo.actualizeaza(
-                          vehicul.id,
-                          vehicul.copyWith(talon: nouaLista),
-                        ),
                   ),
-                  _SectiuneDocumente(
-                    titlu: 'Carte de identitate',
-                    icon: Icons.badge_outlined,
-                    fisiere: vehicul.carteIdentitate,
-                    dataOwnerUid: date.dataOwnerUid,
-                    onActualizeaza: (nouaLista) =>
-                        date.vehiculeRepo.actualizeaza(
-                          vehicul.id,
-                          vehicul.copyWith(carteIdentitate: nouaLista),
-                        ),
+                  onEditeaza: (asig) => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => AsigurareFormScreen(
+                        vehiculId: vehiculId,
+                        asigurare: asig,
+                      ),
+                    ),
                   ),
-                ],
-              ),
+                  onSterge: (id) => date.asigurariRepo.sterge(id),
+                ),
+                _Sectiune<Revizie>(
+                  titlu: 'Revizii',
+                  icon: Icons.build_outlined,
+                  items: revizii,
+                  idItem: (r) => r.id,
+                  subtitluItem: (r) =>
+                      '${r.tip.isEmpty ? 'Revizie' : r.tip} · ${formateazaDataRo(r.data)} · ${r.costTotal.toStringAsFixed(0)} lei',
+                  zileRamaseItem: (r) => zilePanaLa(r.proximData),
+                  onAdauga: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => RevizieFormScreen(vehiculId: vehiculId),
+                    ),
+                  ),
+                  onEditeaza: (rev) => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          RevizieFormScreen(vehiculId: vehiculId, revizie: rev),
+                    ),
+                  ),
+                  onSterge: (id) => date.reviziiRepo.sterge(id),
+                ),
+              ],
             ),
-          ),
-          const SizedBox(height: 12),
-          _Sectiune<Itp>(
-            titlu: 'ITP',
-            icon: Icons.fact_check_outlined,
-            items: itpuri,
-            idItem: (i) => i.id,
-            subtitluItem: (i) =>
-                'Expiră: ${formateazaDataRo(i.dataExpirare)} · ${i.cost.toStringAsFixed(0)} lei',
-            zileRamaseItem: (i) => zilePanaLa(i.dataExpirare),
-            onAdauga: () => Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => ItpFormScreen(vehiculId: vehiculId),
-              ),
-            ),
-            onEditeaza: (itp) => Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => ItpFormScreen(vehiculId: vehiculId, itp: itp),
-              ),
-            ),
-            onSterge: (id) => date.itpRepo.sterge(id),
-          ),
-          _Sectiune<Rovinieta>(
-            titlu: 'Rovinietă',
-            icon: Icons.toll_outlined,
-            items: rovinete,
-            idItem: (r) => r.id,
-            subtitluItem: (r) =>
-                '${r.tip} · expiră: ${formateazaDataRo(r.dataExpirare)} · ${r.cost.toStringAsFixed(0)} lei',
-            zileRamaseItem: (r) => zilePanaLa(r.dataExpirare),
-            onAdauga: () => Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => RovinietaFormScreen(vehiculId: vehiculId),
-              ),
-            ),
-            onEditeaza: (rov) => Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) =>
-                    RovinietaFormScreen(vehiculId: vehiculId, rovinieta: rov),
-              ),
-            ),
-            onSterge: (id) => date.rovinietaRepo.sterge(id),
-          ),
-          _Sectiune<Asigurare>(
-            titlu: 'Asigurări',
-            icon: Icons.shield_outlined,
-            items: asigurari,
-            idItem: (a) => a.id,
-            subtitluItem: (a) =>
-                '${a.tip} · ${a.furnizor} · expiră: ${formateazaDataRo(a.dataExpirare)} · ${a.cost.toStringAsFixed(0)} lei',
-            zileRamaseItem: (a) => zilePanaLa(a.dataExpirare),
-            onAdauga: () => Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => AsigurareFormScreen(vehiculId: vehiculId),
-              ),
-            ),
-            onEditeaza: (asig) => Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) =>
-                    AsigurareFormScreen(vehiculId: vehiculId, asigurare: asig),
-              ),
-            ),
-            onSterge: (id) => date.asigurariRepo.sterge(id),
-          ),
-          _Sectiune<Revizie>(
-            titlu: 'Revizii',
-            icon: Icons.build_outlined,
-            items: revizii,
-            idItem: (r) => r.id,
-            subtitluItem: (r) =>
-                '${r.tip.isEmpty ? 'Revizie' : r.tip} · ${formateazaDataRo(r.data)} · ${r.costTotal.toStringAsFixed(0)} lei',
-            zileRamaseItem: (r) => zilePanaLa(r.proximData),
-            onAdauga: () => Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => RevizieFormScreen(vehiculId: vehiculId),
-              ),
-            ),
-            onEditeaza: (rev) => Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) =>
-                    RevizieFormScreen(vehiculId: vehiculId, revizie: rev),
-              ),
-            ),
-            onSterge: (id) => date.reviziiRepo.sterge(id),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Imaginea vehiculului pe tot ecranul, deschisă prin dublu-tap pe poza din
+/// cardul vehiculului — zoom/pan cu InteractiveViewer, fundal negru.
+class _FotoIntreagaScreen extends StatelessWidget {
+  final String url;
+
+  const _FotoIntreagaScreen({required this.url});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        foregroundColor: Colors.white,
+        elevation: 0,
+      ),
+      body: Center(
+        child: InteractiveViewer(
+          minScale: 0.5,
+          maxScale: 4,
+          child: Image.network(
+            url,
+            fit: BoxFit.contain,
+            webHtmlElementStrategy: WebHtmlElementStrategy.fallback,
+          ),
+        ),
       ),
     );
   }
@@ -357,8 +467,14 @@ class _Sectiune<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final zile = _zileMinime();
+    final culori = Theme.of(context).colorScheme;
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
+      clipBehavior: Clip.antiAlias,
+      // Antetul categoriei (card) rămâne pe un ton mai închis decât
+      // înregistrările de dedesubt, ca să se vadă clar diferența dintre
+      // „categorie" și „înregistrare" (cerut explicit de user).
+      color: culori.surfaceContainerHighest,
       child: ExpansionTile(
         leading: Icon(icon),
         title: Row(
@@ -383,38 +499,46 @@ class _Sectiune<T> extends StatelessWidget {
           ],
         ),
         children: [
-          for (final (index, item) in items.indexed) ...[
-            if (index > 0) const Divider(height: 1),
-            Dismissible(
-              key: ValueKey(idItem(item)),
-              direction: DismissDirection.endToStart,
-              background: Container(
-                alignment: Alignment.centerRight,
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                color: Theme.of(context).colorScheme.error,
-                child: Icon(
-                  Icons.delete_outline,
-                  color: Theme.of(context).colorScheme.onError,
-                ),
-              ),
-              confirmDismiss: (_) => _confirmaStergere(context),
-              onDismissed: (_) => onSterge(idItem(item)),
-              child: ListTile(
-                leading: CircleAvatar(
-                  radius: 13,
-                  child: Text(
-                    '${index + 1}',
-                    style: const TextStyle(fontSize: 12),
+          for (final (index, item) in items.indexed)
+            // Fundal alternant (deschis/mai deschis) + separator, ca fiecare
+            // înregistrare să fie vizibil distinctă de vecinele ei și de
+            // antetul mai închis de deasupra.
+            Container(
+              color: index.isEven ? culori.surface : culori.surfaceContainerLow,
+              child: Column(
+                children: [
+                  if (index > 0) const Divider(height: 1),
+                  Dismissible(
+                    key: ValueKey(idItem(item)),
+                    direction: DismissDirection.endToStart,
+                    background: Container(
+                      alignment: Alignment.centerRight,
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      color: culori.error,
+                      child: Icon(Icons.delete_outline, color: culori.onError),
+                    ),
+                    confirmDismiss: (_) => _confirmaStergere(context),
+                    onDismissed: (_) => onSterge(idItem(item)),
+                    child: ListTile(
+                      leading: CircleAvatar(
+                        radius: 13,
+                        child: Text(
+                          '${index + 1}',
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                      ),
+                      title: Text(subtitluItem(item)),
+                      trailing: const Icon(Icons.chevron_right, size: 20),
+                      onTap: () => onEditeaza(item),
+                    ),
                   ),
-                ),
-                title: Text(subtitluItem(item)),
-                trailing: const Icon(Icons.chevron_right, size: 20),
-                onTap: () => onEditeaza(item),
+                ],
               ),
             ),
-          ],
-          Padding(
+          Container(
+            color: culori.surface,
             padding: const EdgeInsets.all(8),
+            width: double.infinity,
             child: OutlinedButton.icon(
               onPressed: onAdauga,
               icon: const Icon(Icons.add),

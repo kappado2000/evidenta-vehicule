@@ -33,6 +33,8 @@ class ListaVehiculeScreen extends StatelessWidget {
               },
             ),
       floatingActionButton: FloatingActionButton(
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Theme.of(context).colorScheme.onPrimary,
         onPressed: () => Navigator.of(context)
             .push(MaterialPageRoute(builder: (_) => const VehiculFormScreen())),
         child: const Icon(Icons.add),
@@ -51,18 +53,25 @@ class _CardVehicul extends StatelessWidget {
     return Card(
       clipBehavior: Clip.antiAlias,
       child: ListTile(
-        leading: CircleAvatar(
-          child: vehicul.fotoUrl.isEmpty
-              ? const Icon(Icons.directions_car)
-              : ClipOval(
-                  child: Image.network(
+        // Pătrat cu colțuri teșite (stil iconiță iOS), nu cerc - vehiculul
+        // se încadrează mai bine într-un dreptunghi decât într-un cerc.
+        leading: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            width: 52,
+            height: 52,
+            color: Theme.of(context).colorScheme.primaryContainer,
+            child: vehicul.fotoUrl.isEmpty
+                ? Icon(
+                    Icons.directions_car,
+                    color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  )
+                : Image.network(
                     vehicul.fotoUrl,
-                    width: 40,
-                    height: 40,
                     fit: BoxFit.cover,
                     webHtmlElementStrategy: WebHtmlElementStrategy.fallback,
                   ),
-                ),
+          ),
         ),
         title: Text(
           vehicul.nr,
