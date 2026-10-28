@@ -491,15 +491,9 @@ class _Sectiune<T> extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       clipBehavior: Clip.antiAlias,
-      // Antetul categoriei (card) rămâne pe un ton mai închis decât
-      // înregistrările de dedesubt, ca să se vadă clar diferența dintre
-      // „categorie" și „înregistrare" - plus tenta proprie fiecărei
-      // categorii (ITP/Rovinietă/Asigurări/Revizii), ca să se deosebească
-      // una de alta la toate vehiculele.
-      color: Color.alphaBlend(
-        culoareCategorie.withValues(alpha: 0.22),
-        culori.surfaceContainerHighest,
-      ),
+      // Antetul categoriei (buton) rămâne ton unic, neschimbat - doar
+      // înregistrările de dedesubt au tenta proprie fiecărei categorii.
+      color: culori.surfaceContainerHighest,
       child: ExpansionTile(
         // Cheie proprie, independentă de restul ExpansionTile-urilor, ca
         // deschiderea unei categorii să nu le închidă pe celelalte deja
@@ -534,7 +528,7 @@ class _Sectiune<T> extends StatelessWidget {
             // antetul mai închis de deasupra.
             Container(
               color: Color.alphaBlend(
-                culoareCategorie.withValues(alpha: index.isEven ? 0.05 : 0.1),
+                culoareCategorie.withValues(alpha: index.isEven ? 0.1 : 0.2),
                 culori.surface,
               ),
               child: Column(
