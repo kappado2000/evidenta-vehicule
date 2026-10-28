@@ -385,6 +385,13 @@ class _VehiculFormScreenState extends State<VehiculFormScreen> {
                 border: OutlineInputBorder(),
               ),
             ),
+            const SizedBox(height: 16),
+            Text(
+              _editare
+                  ? 'Talonul și cartea de identitate se gestionează din ecranul vehiculului.'
+                  : 'Talonul și cartea de identitate se adaugă din ecranul vehiculului, după salvare.',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
             const SizedBox(height: 24),
           ],
         ),

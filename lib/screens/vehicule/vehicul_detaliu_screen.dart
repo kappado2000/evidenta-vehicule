@@ -1,11 +1,15 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../models/asigurare.dart';
+import '../../models/fisier_atasat.dart';
 import '../../models/itp.dart';
 import '../../models/revizie.dart';
 import '../../models/rovinieta.dart';
 import '../../providers/date_provider.dart';
+import '../../services/storage_service.dart';
 import '../../utils/date_utils.dart';
 import '../asigurari/asigurare_form_screen.dart';
 import '../itp/itp_form_screen.dart';
@@ -128,6 +132,18 @@ class VehiculDetaliuScreen extends StatelessWidget {
                     ].join(' · '),
                   ),
                   if (vehicul.vin.isNotEmpty) Text('VIN: ${vehicul.vin}'),
+                  if (vehicul.culoare.isNotEmpty)
+                    Text('Culoare: ${vehicul.culoare}'),
+                  if (vehicul.putereCP != null)
+                    Text('Putere: ${vehicul.putereCP} CP'),
+                  if (vehicul.capacitateCilindrica != null)
+                    Text('Capacitate: ${vehicul.capacitateCilindrica} cmc'),
+                  if (vehicul.anvelope.isNotEmpty)
+                    Text('Anvelope: ${vehicul.anvelope}'),
+                  if (vehicul.observatii.isNotEmpty) ...[
+                    const Divider(height: 16),
+                    Text(vehicul.observatii),
+                  ],
                 ],
               ),
             ),
@@ -215,6 +231,26 @@ class VehiculDetaliuScreen extends StatelessWidget {
               ),
             ),
             onSterge: (id) => date.reviziiRepo.sterge(id),
+          ),
+          _SectiuneDocumente(
+            titlu: 'Talon',
+            icon: Icons.description_outlined,
+            fisiere: vehicul.talon,
+            dataOwnerUid: date.dataOwnerUid,
+            onActualizeaza: (nouaLista) => date.vehiculeRepo.actualizeaza(
+              vehicul.id,
+              vehicul.copyWith(talon: nouaLista),
+            ),
+          ),
+          _SectiuneDocumente(
+            titlu: 'Carte de identitate',
+            icon: Icons.badge_outlined,
+            fisiere: vehicul.carteIdentitate,
+            dataOwnerUid: date.dataOwnerUid,
+            onActualizeaza: (nouaLista) => date.vehiculeRepo.actualizeaza(
+              vehicul.id,
+              vehicul.copyWith(carteIdentitate: nouaLista),
+            ),
           ),
         ],
       ),
@@ -344,6 +380,145 @@ class _Sectiune<T> extends StatelessWidget {
               onPressed: onAdauga,
               icon: const Icon(Icons.add),
               label: Text('Adaugă $titlu'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Listă de documente atașate vehiculului (talon / carte de identitate),
+/// cu adăugare (poză sau PDF, din `file_picker` ca bytes, nu `dart:io File`
+/// — merge și pe web), deschidere în tab nou, și ștergere prin swipe.
+class _SectiuneDocumente extends StatefulWidget {
+  final String titlu;
+  final IconData icon;
+  final List<FisierAtasat> fisiere;
+  final String dataOwnerUid;
+  final Future<void> Function(List<FisierAtasat> nouaLista) onActualizeaza;
+
+  const _SectiuneDocumente({
+    required this.titlu,
+    required this.icon,
+    required this.fisiere,
+    required this.dataOwnerUid,
+    required this.onActualizeaza,
+  });
+
+  @override
+  State<_SectiuneDocumente> createState() => _SectiuneDocumenteState();
+}
+
+class _SectiuneDocumenteState extends State<_SectiuneDocumente> {
+  bool _seIncarca = false;
+
+  Future<bool> _confirmaStergere(BuildContext context) async {
+    final confirma = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text('Ștergi din ${widget.titlu}?'),
+        content: const Text('Fișierul nu mai poate fi recuperat.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Anulează'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Șterge'),
+          ),
+        ],
+      ),
+    );
+    return confirma ?? false;
+  }
+
+  Future<void> _sterge(FisierAtasat fisier) async {
+    await StorageService().sterge(fisier.path);
+    final nouaLista = widget.fisiere
+        .where((f) => f.path != fisier.path)
+        .toList();
+    await widget.onActualizeaza(nouaLista);
+  }
+
+  Future<void> _adauga() async {
+    final rezultat = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: const ['pdf', 'jpg', 'jpeg', 'png'],
+      withData: true,
+    );
+    if (rezultat == null || rezultat.files.isEmpty) return;
+    final fisier = rezultat.files.first;
+    if (fisier.bytes == null) return;
+
+    setState(() => _seIncarca = true);
+    try {
+      final extensie = (fisier.extension ?? '').toLowerCase();
+      final contentType = extensie == 'pdf' ? 'application/pdf' : 'image/jpeg';
+      final atas = await StorageService().urcaBytes(
+        dataOwnerUid: widget.dataOwnerUid,
+        subfolder: 'vehicule',
+        bytes: fisier.bytes!,
+        numeOriginal: fisier.name,
+        contentType: contentType,
+      );
+      await widget.onActualizeaza([...widget.fisiere, atas]);
+    } finally {
+      if (mounted) setState(() => _seIncarca = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: ExpansionTile(
+        leading: Icon(widget.icon),
+        title: Text('${widget.titlu} (${widget.fisiere.length})'),
+        children: [
+          for (final fisier in widget.fisiere) ...[
+            Dismissible(
+              key: ValueKey(fisier.path),
+              direction: DismissDirection.endToStart,
+              background: Container(
+                alignment: Alignment.centerRight,
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                color: Theme.of(context).colorScheme.error,
+                child: Icon(
+                  Icons.delete_outline,
+                  color: Theme.of(context).colorScheme.onError,
+                ),
+              ),
+              confirmDismiss: (_) => _confirmaStergere(context),
+              onDismissed: (_) => _sterge(fisier),
+              child: ListTile(
+                leading: Icon(
+                  fisier.type.contains('pdf')
+                      ? Icons.picture_as_pdf_outlined
+                      : Icons.image_outlined,
+                ),
+                title: Text(fisier.name, overflow: TextOverflow.ellipsis),
+                trailing: const Icon(Icons.open_in_new, size: 18),
+                onTap: () => launchUrl(
+                  Uri.parse(fisier.url),
+                  mode: LaunchMode.externalApplication,
+                ),
+              ),
+            ),
+          ],
+          Padding(
+            padding: const EdgeInsets.all(8),
+            child: OutlinedButton.icon(
+              onPressed: _seIncarca ? null : _adauga,
+              icon: _seIncarca
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.add),
+              label: Text('Adaugă ${widget.titlu}'),
             ),
           ),
         ],
