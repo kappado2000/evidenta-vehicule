@@ -443,14 +443,13 @@ class _SectiuneDocumenteState extends State<_SectiuneDocumente> {
   }
 
   Future<void> _adauga() async {
-    final rezultat = await FilePicker.platform.pickFiles(
+    final rezultat = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: const ['pdf', 'jpg', 'jpeg', 'png'],
-      withData: true,
     );
-    if (rezultat == null || rezultat.files.isEmpty) return;
-    final fisier = rezultat.files.first;
-    if (fisier.bytes == null) return;
+    if (rezultat.isEmpty) return;
+    final fisier = rezultat.first;
+    final bytes = await fisier.readAsBytes();
 
     setState(() => _seIncarca = true);
     try {
@@ -459,7 +458,7 @@ class _SectiuneDocumenteState extends State<_SectiuneDocumente> {
       final atas = await StorageService().urcaBytes(
         dataOwnerUid: widget.dataOwnerUid,
         subfolder: 'vehicule',
-        bytes: fisier.bytes!,
+        bytes: bytes,
         numeOriginal: fisier.name,
         contentType: contentType,
       );
