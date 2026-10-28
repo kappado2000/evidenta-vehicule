@@ -53,11 +53,17 @@ class _CardVehicul extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: ListTile(
         leading: CircleAvatar(
-          backgroundImage:
-              vehicul.fotoUrl.isNotEmpty ? NetworkImage(vehicul.fotoUrl) : null,
           child: vehicul.fotoUrl.isEmpty
               ? const Icon(Icons.directions_car)
-              : null,
+              : ClipOval(
+                  child: Image.network(
+                    vehicul.fotoUrl,
+                    width: 40,
+                    height: 40,
+                    fit: BoxFit.cover,
+                    webHtmlElementStrategy: WebHtmlElementStrategy.fallback,
+                  ),
+                ),
         ),
         title: Text(vehicul.nr,
             style: const TextStyle(fontWeight: FontWeight.bold)),

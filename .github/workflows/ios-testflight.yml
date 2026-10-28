@@ -30,7 +30,7 @@ jobs:
         env:
           # TODO: completează cu id-ul numeric al aplicației din App Store
           # Connect, după ce e creată (vezi pașii manuali din plan).
-          APP_ID: 'PUS_DE_COMPLETAT_DUPA_CREARE_APP'
+          APP_ID: '6827991322'
           ASC_KEY_ID: ${{ secrets.IOS_ASC_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.IOS_ASC_ISSUER_ID }}
           ASC_API_KEY_BASE64: ${{ secrets.IOS_ASC_API_KEY_BASE64 }}

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import 'firebase_options.dart';
 import 'providers/auth_provider.dart';
+import 'providers/date_provider.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/home_shell.dart';
 
@@ -20,39 +21,59 @@ class EvidentaVehiculeApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (_) => AuthProvider(),
-      child: MaterialApp(
-        title: 'Evidență Vehicule',
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          colorSchemeSeed: const Color(0xFF0891B2),
-          useMaterial3: true,
-          brightness: Brightness.light,
-        ),
-        darkTheme: ThemeData(
-          colorSchemeSeed: const Color(0xFF0891B2),
-          useMaterial3: true,
-          brightness: Brightness.dark,
-        ),
-        home: const _Poarta(),
-      ),
+      child: const _Poarta(),
     );
   }
 }
 
 /// Alege ecranul potrivit în funcție de starea de autentificare.
+///
+/// Când userul e autentificat, `DateProvider` e creat AICI, deasupra
+/// `MaterialApp` (deci deasupra Navigator-ului), nu în `HomeShell`: rutele
+/// deschise cu `Navigator.push` (ex. VehiculDetaliuScreen) devin intrări noi
+/// în Overlay-ul Navigator-ului, frați cu ruta „home", nu descendenți ai ei
+/// — un provider declarat sub Scaffold-ul din HomeShell nu e vizibil pentru
+/// ele (`ProviderNotFoundError`).
 class _Poarta extends StatelessWidget {
   const _Poarta();
 
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
-    switch (auth.stare) {
-      case StareAuth.seIncarca:
-        return const Scaffold(body: Center(child: CircularProgressIndicator()));
-      case StareAuth.neautentificat:
-        return const LoginScreen();
-      case StareAuth.autentificat:
-        return HomeShell(dataOwnerUid: auth.dataOwnerUid!);
+    if (auth.stare == StareAuth.autentificat) {
+      return ChangeNotifierProvider<DateProvider>(
+        key: ValueKey(auth.dataOwnerUid),
+        create: (_) => DateProvider(dataOwnerUid: auth.dataOwnerUid!),
+        child: const _App(home: HomeShell()),
+      );
     }
+    final home = auth.stare == StareAuth.seIncarca
+        ? const Scaffold(body: Center(child: CircularProgressIndicator()))
+        : const LoginScreen();
+    return _App(home: home);
+  }
+}
+
+class _App extends StatelessWidget {
+  final Widget home;
+  const _App({required this.home});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Evidență Vehicule',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        colorSchemeSeed: const Color(0xFF0891B2),
+        useMaterial3: true,
+        brightness: Brightness.light,
+      ),
+      darkTheme: ThemeData(
+        colorSchemeSeed: const Color(0xFF0891B2),
+        useMaterial3: true,
+        brightness: Brightness.dark,
+      ),
+      home: home,
+    );
   }
 }

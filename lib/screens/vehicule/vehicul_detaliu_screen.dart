@@ -95,7 +95,10 @@ class VehiculDetaliuScreen extends StatelessWidget {
                     ClipRRect(
                       borderRadius: BorderRadius.circular(8),
                       child: Image.network(vehicul.fotoUrl,
-                          height: 160, width: double.infinity, fit: BoxFit.cover),
+                          height: 160,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                          webHtmlElementStrategy: WebHtmlElementStrategy.fallback),
                     ),
                   const SizedBox(height: 8),
                   Text(vehicul.numeAfisat,

@@ -190,12 +190,18 @@ class _VehiculFormScreenState extends State<VehiculFormScreen> {
                       )
                     : CircleAvatar(
                         radius: 48,
-                        backgroundImage: _fotoUrl.isNotEmpty
-                            ? NetworkImage(_fotoUrl)
-                            : null,
                         child: _fotoUrl.isEmpty
                             ? const Icon(Icons.add_a_photo_outlined, size: 32)
-                            : null,
+                            : ClipOval(
+                                child: Image.network(
+                                  _fotoUrl,
+                                  width: 96,
+                                  height: 96,
+                                  fit: BoxFit.cover,
+                                  webHtmlElementStrategy:
+                                      WebHtmlElementStrategy.fallback,
+                                ),
+                              ),
                       ),
               ),
             ),

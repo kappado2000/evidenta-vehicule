@@ -61,6 +61,19 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
 
+  flutter_launcher_icons: ^0.14.3
+
+flutter_launcher_icons:
+  image_path: "assets/icon/icon.png"
+  ios: true
+  remove_alpha_ios: true
+  android: true
+  web:
+    generate: true
+    image_path: "assets/icon/icon.png"
+    background_color: "#0f172a"
+    theme_color: "#0f172a"
+
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
