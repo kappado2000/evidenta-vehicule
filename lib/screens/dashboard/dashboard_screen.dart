@@ -39,7 +39,10 @@ class DashboardScreen extends StatelessWidget {
               ),
             )
           : ListView.separated(
-              padding: const EdgeInsets.all(12),
+              // Padding jos generos - bara de navigare e plutitoare (peste
+              // conținut, Scaffold.extendBody), altfel ultimele rânduri
+              // rămân ascunse sub ea.
+              padding: const EdgeInsets.fromLTRB(12, 12, 12, 100),
               itemCount: date.alerte.length,
               separatorBuilder: (_, _) => const SizedBox(height: 8),
               itemBuilder: (context, i) {

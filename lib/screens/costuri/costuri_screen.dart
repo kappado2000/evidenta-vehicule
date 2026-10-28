@@ -16,7 +16,9 @@ class CosturiScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: Text('Costuri $anCurent')),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        // Padding jos generos - bara de navigare e plutitoare (peste
+        // conținut, Scaffold.extendBody).
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
         children: [
           Card(
             color: Theme.of(context).colorScheme.primaryContainer,

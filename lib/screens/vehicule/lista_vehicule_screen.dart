@@ -25,7 +25,10 @@ class ListaVehiculeScreen extends StatelessWidget {
               ),
             )
           : ListView.builder(
-              padding: const EdgeInsets.all(12),
+              // Padding jos generos - bara de navigare e plutitoare (peste
+              // conținut, Scaffold.extendBody), altfel ultimele rânduri
+              // rămân ascunse sub ea.
+              padding: const EdgeInsets.fromLTRB(12, 12, 12, 100),
               itemCount: date.vehicule.length,
               itemBuilder: (context, i) {
                 final v = date.vehicule[i];

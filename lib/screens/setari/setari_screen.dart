@@ -59,7 +59,9 @@ class _SetariScreenState extends State<SetariScreen> {
         behavior: HitTestBehavior.translucent,
         onTap: () => FocusScope.of(context).unfocus(),
         child: ListView(
-          padding: const EdgeInsets.all(16),
+          // Padding jos generos - bara de navigare e plutitoare (peste
+          // conținut, Scaffold.extendBody).
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
           children: [
             if (auth.eroareInregistrareNotificari != null)
               Card(

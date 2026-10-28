@@ -140,7 +140,10 @@ class _VehiculDetaliuScreenState extends State<VehiculDetaliuScreen> {
             ),
           Expanded(
             child: ListView(
-              padding: const EdgeInsets.all(12),
+              // Padding jos generos - bara de navigare e plutitoare (peste
+              // conținut, Scaffold.extendBody), altfel categoria Revizii
+              // (ultima din listă) rămâne ascunsă sub ea.
+              padding: const EdgeInsets.fromLTRB(12, 12, 12, 100),
               children: [
                 Card(
                   child: Padding(
