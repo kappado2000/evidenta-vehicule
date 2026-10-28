@@ -15,6 +15,7 @@ class HomeShell extends StatefulWidget {
 
 class _HomeShellState extends State<HomeShell> {
   int _index = 0;
+  final _navigatorKey = GlobalKey<NavigatorState>();
 
   static const _ecrane = [
     DashboardScreen(),
@@ -24,13 +25,36 @@ class _HomeShellState extends State<HomeShell> {
     SetariScreen(),
   ];
 
+  // Dacă userul e într-un ecran deschis cu Navigator.push (detaliu vehicul,
+  // formular etc.), revine întâi la ecranul de bază al tabului curent -
+  // altfel schimbarea tabului ar rămâne ascunsă sub ecranul deschis, fiindcă
+  // toate tab-urile împart același Navigator imbricat (vezi comentariul de
+  // pe `Navigator` mai jos).
+  void _schimbaTab(int i) {
+    _navigatorKey.currentState?.popUntil((r) => r.isFirst);
+    setState(() => _index = i);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(index: _index, children: _ecrane),
+      // Navigator imbricat: orice `Navigator.of(context).push(...)` apelat
+      // din ecranele tab-urilor (ex. VehiculDetaliuScreen) găsește ACEST
+      // Navigator ca cel mai apropiat ascendent, nu pe cel al MaterialApp -
+      // deci ecranele împinse rămân în interiorul `body`-ului, sub bara de
+      // jos, care astfel rămâne vizibilă permanent pe toate paginile
+      // aplicației, nu doar pe cele 5 ecrane de bază ale tab-urilor.
+      body: Navigator(
+        key: _navigatorKey,
+        onGenerateRoute: (settings) => MaterialPageRoute(
+          builder: (_) => IndexedStack(index: _index, children: _ecrane),
+        ),
+      ),
       bottomNavigationBar: NavigationBar(
+        backgroundColor: Theme.of(context).colorScheme.surfaceContainer
+            .withValues(alpha: 0.8),
         selectedIndex: _index,
-        onDestinationSelected: (i) => setState(() => _index = i),
+        onDestinationSelected: _schimbaTab,
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.notifications_outlined),

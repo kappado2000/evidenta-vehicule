@@ -111,12 +111,16 @@ class VehiculDetaliuScreen extends StatelessWidget {
                   if (vehicul.fotoUrl.isNotEmpty)
                     ClipRRect(
                       borderRadius: BorderRadius.circular(8),
-                      child: Image.network(
-                        vehicul.fotoUrl,
+                      child: Container(
                         height: 160,
                         width: double.infinity,
-                        fit: BoxFit.cover,
-                        webHtmlElementStrategy: WebHtmlElementStrategy.fallback,
+                        color: Theme.of(context).colorScheme.surfaceContainer,
+                        child: Image.network(
+                          vehicul.fotoUrl,
+                          fit: BoxFit.contain,
+                          webHtmlElementStrategy:
+                              WebHtmlElementStrategy.fallback,
+                        ),
                       ),
                     ),
                   const SizedBox(height: 8),
@@ -124,26 +128,54 @@ class VehiculDetaliuScreen extends StatelessWidget {
                     vehicul.numeAfisat,
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
-                  Text(
-                    [
-                      if (vehicul.an != null) 'An: ${vehicul.an}',
-                      if (vehicul.km != null) 'Km: ${vehicul.km}',
-                      if (vehicul.combustibil.isNotEmpty) vehicul.combustibil,
-                    ].join(' · '),
-                  ),
-                  if (vehicul.vin.isNotEmpty) Text('VIN: ${vehicul.vin}'),
+                  const SizedBox(height: 6),
+                  if (vehicul.an != null)
+                    _randDate(context, 'An', '${vehicul.an}'),
+                  if (vehicul.km != null)
+                    _randDate(context, 'Km', '${vehicul.km}'),
+                  if (vehicul.combustibil.isNotEmpty)
+                    _randDate(context, 'Combustibil', vehicul.combustibil),
+                  if (vehicul.vin.isNotEmpty)
+                    _randDate(context, 'VIN', vehicul.vin),
                   if (vehicul.culoare.isNotEmpty)
-                    Text('Culoare: ${vehicul.culoare}'),
+                    _randDate(context, 'Culoare', vehicul.culoare),
                   if (vehicul.putereCP != null)
-                    Text('Putere: ${vehicul.putereCP} CP'),
+                    _randDate(context, 'Putere', '${vehicul.putereCP} CP'),
                   if (vehicul.capacitateCilindrica != null)
-                    Text('Capacitate: ${vehicul.capacitateCilindrica} cmc'),
+                    _randDate(
+                      context,
+                      'Capacitate',
+                      '${vehicul.capacitateCilindrica} cmc',
+                    ),
                   if (vehicul.anvelope.isNotEmpty)
-                    Text('Anvelope: ${vehicul.anvelope}'),
+                    _randDate(context, 'Anvelope', vehicul.anvelope),
                   if (vehicul.observatii.isNotEmpty) ...[
                     const Divider(height: 16),
-                    Text(vehicul.observatii),
+                    _randDate(context, 'Observații', vehicul.observatii),
                   ],
+                  const Divider(height: 24),
+                  _SectiuneDocumente(
+                    titlu: 'Talon',
+                    icon: Icons.description_outlined,
+                    fisiere: vehicul.talon,
+                    dataOwnerUid: date.dataOwnerUid,
+                    onActualizeaza: (nouaLista) =>
+                        date.vehiculeRepo.actualizeaza(
+                          vehicul.id,
+                          vehicul.copyWith(talon: nouaLista),
+                        ),
+                  ),
+                  _SectiuneDocumente(
+                    titlu: 'Carte de identitate',
+                    icon: Icons.badge_outlined,
+                    fisiere: vehicul.carteIdentitate,
+                    dataOwnerUid: date.dataOwnerUid,
+                    onActualizeaza: (nouaLista) =>
+                        date.vehiculeRepo.actualizeaza(
+                          vehicul.id,
+                          vehicul.copyWith(carteIdentitate: nouaLista),
+                        ),
+                  ),
                 ],
               ),
             ),
@@ -232,30 +264,32 @@ class VehiculDetaliuScreen extends StatelessWidget {
             ),
             onSterge: (id) => date.reviziiRepo.sterge(id),
           ),
-          _SectiuneDocumente(
-            titlu: 'Talon',
-            icon: Icons.description_outlined,
-            fisiere: vehicul.talon,
-            dataOwnerUid: date.dataOwnerUid,
-            onActualizeaza: (nouaLista) => date.vehiculeRepo.actualizeaza(
-              vehicul.id,
-              vehicul.copyWith(talon: nouaLista),
-            ),
-          ),
-          _SectiuneDocumente(
-            titlu: 'Carte de identitate',
-            icon: Icons.badge_outlined,
-            fisiere: vehicul.carteIdentitate,
-            dataOwnerUid: date.dataOwnerUid,
-            onActualizeaza: (nouaLista) => date.vehiculeRepo.actualizeaza(
-              vehicul.id,
-              vehicul.copyWith(carteIdentitate: nouaLista),
-            ),
-          ),
         ],
       ),
     );
   }
+}
+
+/// Rând „etichetă: valoare" pentru cardul vehiculului — etichetă bolduită,
+/// valoare normală, scris mai mic decât titlul (userul a cerut explicit
+/// această ierarhie vizuală).
+Widget _randDate(BuildContext context, String eticheta, String valoare) {
+  final culoare = Theme.of(context).colorScheme.onSurface;
+  return Padding(
+    padding: const EdgeInsets.only(bottom: 2),
+    child: RichText(
+      text: TextSpan(
+        style: TextStyle(fontSize: 13, color: culoare),
+        children: [
+          TextSpan(
+            text: '$eticheta: ',
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+          TextSpan(text: valoare),
+        ],
+      ),
+    ),
+  );
 }
 
 class _Sectiune<T> extends StatelessWidget {
@@ -311,13 +345,43 @@ class _Sectiune<T> extends StatelessWidget {
     return confirma ?? false;
   }
 
+  /// Cel mai urgent termen din categorie (minimul dintre zilele rămase ale
+  /// tuturor înregistrărilor) — userul a cerut badge-ul pe antetul
+  /// categoriei (ITP/Rovinietă/Asigurări/Revizii), nu pe fiecare înregistrare.
+  int? _zileMinime() {
+    final valori = items.map(zileRamaseItem).whereType<int>().toList();
+    if (valori.isEmpty) return null;
+    return valori.reduce((a, b) => a < b ? a : b);
+  }
+
   @override
   Widget build(BuildContext context) {
+    final zile = _zileMinime();
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: ExpansionTile(
         leading: Icon(icon),
-        title: Text('$titlu (${items.length})'),
+        title: Row(
+          children: [
+            Expanded(child: Text('$titlu (${items.length})')),
+            if (zile != null)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: _culoareZile(zile),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  zile < 0 ? 'Expirat' : '${zile}z',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 11,
+                  ),
+                ),
+              ),
+          ],
+        ),
         children: [
           for (final (index, item) in items.indexed) ...[
             if (index > 0) const Divider(height: 1),
@@ -344,32 +408,7 @@ class _Sectiune<T> extends StatelessWidget {
                   ),
                 ),
                 title: Text(subtitluItem(item)),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (zileRamaseItem(item) case final zile?)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: _culoareZile(zile),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          zile < 0 ? 'Expirat' : '${zile}z',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 11,
-                          ),
-                        ),
-                      ),
-                    const SizedBox(width: 4),
-                    const Icon(Icons.chevron_right, size: 20),
-                  ],
-                ),
+                trailing: const Icon(Icons.chevron_right, size: 20),
                 onTap: () => onEditeaza(item),
               ),
             ),
@@ -470,58 +509,57 @@ class _SectiuneDocumenteState extends State<_SectiuneDocumente> {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: ExpansionTile(
-        leading: Icon(widget.icon),
-        title: Text('${widget.titlu} (${widget.fisiere.length})'),
-        children: [
-          for (final fisier in widget.fisiere) ...[
-            Dismissible(
-              key: ValueKey(fisier.path),
-              direction: DismissDirection.endToStart,
-              background: Container(
-                alignment: Alignment.centerRight,
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                color: Theme.of(context).colorScheme.error,
-                child: Icon(
-                  Icons.delete_outline,
-                  color: Theme.of(context).colorScheme.onError,
-                ),
-              ),
-              confirmDismiss: (_) => _confirmaStergere(context),
-              onDismissed: (_) => _sterge(fisier),
-              child: ListTile(
-                leading: Icon(
-                  fisier.type.contains('pdf')
-                      ? Icons.picture_as_pdf_outlined
-                      : Icons.image_outlined,
-                ),
-                title: Text(fisier.name, overflow: TextOverflow.ellipsis),
-                trailing: const Icon(Icons.open_in_new, size: 18),
-                onTap: () => launchUrl(
-                  Uri.parse(fisier.url),
-                  mode: LaunchMode.externalApplication,
-                ),
+    return ExpansionTile(
+      tilePadding: EdgeInsets.zero,
+      childrenPadding: EdgeInsets.zero,
+      leading: Icon(widget.icon),
+      title: Text('${widget.titlu} (${widget.fisiere.length})'),
+      children: [
+        for (final fisier in widget.fisiere) ...[
+          Dismissible(
+            key: ValueKey(fisier.path),
+            direction: DismissDirection.endToStart,
+            background: Container(
+              alignment: Alignment.centerRight,
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              color: Theme.of(context).colorScheme.error,
+              child: Icon(
+                Icons.delete_outline,
+                color: Theme.of(context).colorScheme.onError,
               ),
             ),
-          ],
-          Padding(
-            padding: const EdgeInsets.all(8),
-            child: OutlinedButton.icon(
-              onPressed: _seIncarca ? null : _adauga,
-              icon: _seIncarca
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.add),
-              label: Text('Adaugă ${widget.titlu}'),
+            confirmDismiss: (_) => _confirmaStergere(context),
+            onDismissed: (_) => _sterge(fisier),
+            child: ListTile(
+              leading: Icon(
+                fisier.type.contains('pdf')
+                    ? Icons.picture_as_pdf_outlined
+                    : Icons.image_outlined,
+              ),
+              title: Text(fisier.name, overflow: TextOverflow.ellipsis),
+              trailing: const Icon(Icons.open_in_new, size: 18),
+              onTap: () => launchUrl(
+                Uri.parse(fisier.url),
+                mode: LaunchMode.externalApplication,
+              ),
             ),
           ),
         ],
-      ),
+        Padding(
+          padding: const EdgeInsets.all(8),
+          child: OutlinedButton.icon(
+            onPressed: _seIncarca ? null : _adauga,
+            icon: _seIncarca
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.add),
+            label: Text('Adaugă ${widget.titlu}'),
+          ),
+        ),
+      ],
     );
   }
 }

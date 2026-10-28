@@ -61,7 +61,7 @@ class _App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Evidență Vehicule',
+      title: 'Evidența Auto',
       debugShowCheckedModeBanner: false,
       theme: _temaCu(Brightness.light),
       darkTheme: _temaCu(Brightness.dark),
@@ -74,6 +74,10 @@ class _App extends StatelessWidget {
 /// un gri estompat cu contrast slab (semnalat explicit de user). Le ridicăm
 /// pe `onSurface` la opacitate mare, ca să rămână lizibile peste tot unde
 /// apar (alerte, liste de vehicule, secțiunile din ecranul de detaliu).
+///
+/// AppBar-ul primește explicit culoarea de accent (altfel Material3 îl lasă
+/// pe fundalul neutru al ecranului) - userul a cerut ca aceeași culoare să
+/// fie aplicată CONSECVENT, nu doar pe câteva butoane/iconițe izolate.
 ThemeData _temaCu(Brightness brightness) {
   final tema = ThemeData(
     colorSchemeSeed: const Color(0xFF0891B2),
@@ -85,6 +89,11 @@ ThemeData _temaCu(Brightness brightness) {
       subtitleTextStyle: tema.textTheme.bodyMedium?.copyWith(
         color: tema.colorScheme.onSurface.withValues(alpha: 0.82),
       ),
+    ),
+    appBarTheme: tema.appBarTheme.copyWith(
+      backgroundColor: tema.colorScheme.primary,
+      foregroundColor: tema.colorScheme.onPrimary,
+      centerTitle: false,
     ),
   );
 }
