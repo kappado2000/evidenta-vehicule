@@ -20,6 +20,9 @@ class _ItpFormScreenState extends State<ItpFormScreen> {
   late String _dataExpirare;
   late final TextEditingController _costCtrl;
   bool _seSalveaza = false;
+  // Valabilitate ITP aleasă de user (1 sau 2 ani) - folosită doar pentru
+  // calculul automat al datei de expirare, nu se salvează separat.
+  int _valabilitateAni = 2;
 
   bool get _editare => widget.itp != null;
 
@@ -28,8 +31,16 @@ class _ItpFormScreenState extends State<ItpFormScreen> {
     super.initState();
     final i = widget.itp;
     _dataEfectuare = i?.dataEfectuare ?? azIso();
-    _dataExpirare = i?.dataExpirare ?? '';
+    _dataExpirare =
+        i?.dataExpirare ?? adaugaAniIso(_dataEfectuare, _valabilitateAni) ?? '';
     _costCtrl = TextEditingController(text: i?.cost.toString() ?? '');
+  }
+
+  void _recalculeazaExpirare() {
+    setState(
+      () => _dataExpirare =
+          adaugaAniIso(_dataEfectuare, _valabilitateAni) ?? _dataExpirare,
+    );
   }
 
   @override
@@ -58,6 +69,9 @@ class _ItpFormScreenState extends State<ItpFormScreen> {
         _dataExpirare = iso;
       }
     });
+    // Calcul automat al expirării pe baza datei efectuării + valabilitatea
+    // aleasă - rămâne editabilă manual oricând după aceea.
+    if (efectuare) _recalculeazaExpirare();
   }
 
   Future<void> _salveaza() async {
@@ -103,6 +117,23 @@ class _ItpFormScreenState extends State<ItpFormScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          Text(
+            'Valabilitate ITP',
+            style: Theme.of(context).textTheme.labelLarge,
+          ),
+          const SizedBox(height: 8),
+          SegmentedButton<int>(
+            segments: const [
+              ButtonSegment(value: 1, label: Text('1 an')),
+              ButtonSegment(value: 2, label: Text('2 ani')),
+            ],
+            selected: {_valabilitateAni},
+            onSelectionChanged: (selectie) {
+              setState(() => _valabilitateAni = selectie.first);
+              _recalculeazaExpirare();
+            },
+          ),
+          const SizedBox(height: 12),
           ListTile(
             title: const Text('Data efectuării'),
             subtitle: Text(formateazaDataRo(_dataEfectuare)),

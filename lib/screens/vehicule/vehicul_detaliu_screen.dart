@@ -261,6 +261,7 @@ class _VehiculDetaliuScreenState extends State<VehiculDetaliuScreen> {
                 ),
                 const SizedBox(height: 12),
                 _Sectiune<Itp>(
+                  key: const PageStorageKey('sectiune_itp'),
                   titlu: 'ITP',
                   icon: Icons.fact_check_outlined,
                   culoareCategorie: Colors.blue,
@@ -283,6 +284,7 @@ class _VehiculDetaliuScreenState extends State<VehiculDetaliuScreen> {
                   onSterge: (id) => date.itpRepo.sterge(id),
                 ),
                 _Sectiune<Rovinieta>(
+                  key: const PageStorageKey('sectiune_rovinieta'),
                   titlu: 'Rovinietă',
                   icon: Icons.toll_outlined,
                   culoareCategorie: Colors.deepOrange,
@@ -307,6 +309,7 @@ class _VehiculDetaliuScreenState extends State<VehiculDetaliuScreen> {
                   onSterge: (id) => date.rovinietaRepo.sterge(id),
                 ),
                 _Sectiune<Asigurare>(
+                  key: const PageStorageKey('sectiune_asigurari'),
                   titlu: 'Asigurări',
                   icon: Icons.shield_outlined,
                   culoareCategorie: Colors.green,
@@ -331,6 +334,7 @@ class _VehiculDetaliuScreenState extends State<VehiculDetaliuScreen> {
                   onSterge: (id) => date.asigurariRepo.sterge(id),
                 ),
                 _Sectiune<Revizie>(
+                  key: const PageStorageKey('sectiune_revizii'),
                   titlu: 'Revizii',
                   icon: Icons.build_outlined,
                   culoareCategorie: Colors.deepPurple,
@@ -427,6 +431,7 @@ class _Sectiune<T> extends StatelessWidget {
   final Future<void> Function(String id) onSterge;
 
   const _Sectiune({
+    super.key,
     required this.titlu,
     required this.icon,
     required this.culoareCategorie,
@@ -469,13 +474,14 @@ class _Sectiune<T> extends StatelessWidget {
     return confirma ?? false;
   }
 
-  /// Cel mai urgent termen din categorie (minimul dintre zilele rămase ale
-  /// tuturor înregistrărilor) — userul a cerut badge-ul pe antetul
-  /// categoriei (ITP/Rovinietă/Asigurări/Revizii), nu pe fiecare înregistrare.
+  /// Starea curentă a categoriei, pe antet - DOAR din cea mai recentă
+  /// înregistrare (`items` e deja sortat descrescător după timestamp), nu
+  /// minimul din tot istoricul: o revizie/asigurare veche, deja înlocuită
+  /// de una nouă, nu mai e relevantă și n-ar trebui să arate "Expirat"
+  /// pentru vehiculul curent.
   int? _zileMinime() {
-    final valori = items.map(zileRamaseItem).whereType<int>().toList();
-    if (valori.isEmpty) return null;
-    return valori.reduce((a, b) => a < b ? a : b);
+    if (items.isEmpty) return null;
+    return zileRamaseItem(items.first);
   }
 
   @override
@@ -495,6 +501,10 @@ class _Sectiune<T> extends StatelessWidget {
         culori.surfaceContainerHighest,
       ),
       child: ExpansionTile(
+        // Cheie proprie, independentă de restul ExpansionTile-urilor, ca
+        // deschiderea unei categorii să nu le închidă pe celelalte deja
+        // deschise (semnalat explicit de user).
+        key: PageStorageKey(titlu),
         leading: Icon(icon),
         title: Row(
           children: [

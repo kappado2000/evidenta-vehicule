@@ -46,7 +46,7 @@ class _RevizieFormScreenState extends State<RevizieFormScreen> {
     );
     _costPieseCtrl = TextEditingController(text: r?.costPiese.toString() ?? '');
     _proximKmCtrl = TextEditingController(text: r?.proximKm?.toString() ?? '');
-    _proximData = r?.proximData ?? '';
+    _proximData = r?.proximData ?? adaugaAniIso(_data, 1) ?? '';
     _observatiiCtrl = TextEditingController(text: r?.observatii ?? '');
   }
 
@@ -80,6 +80,9 @@ class _RevizieFormScreenState extends State<RevizieFormScreen> {
     setState(() {
       if (dataPrincipala) {
         _data = iso;
+        // Interval implicit de 1 an până la proxima revizie - se
+        // recalculează automat, rămâne editabilă manual după aceea.
+        _proximData = adaugaAniIso(iso, 1) ?? _proximData;
       } else {
         _proximData = iso;
       }

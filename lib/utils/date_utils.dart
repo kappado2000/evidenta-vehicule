@@ -25,3 +25,24 @@ String azIso() {
       '${azi.month.toString().padLeft(2, '0')}-'
       '${azi.day.toString().padLeft(2, '0')}';
 }
+
+String _iso(DateTime d) =>
+    '${d.year.toString().padLeft(4, '0')}-'
+    '${d.month.toString().padLeft(2, '0')}-'
+    '${d.day.toString().padLeft(2, '0')}';
+
+/// Calculul automat al datei de expirare (ITP/Rovinietă/Asigurare/Revizie) —
+/// userul poate oricând suprascrie manual rezultatul.
+String? adaugaZileIso(String dataIso, int zile) {
+  final data = DateTime.tryParse(dataIso);
+  if (data == null) return null;
+  return _iso(data.add(Duration(days: zile)));
+}
+
+/// Adaugă N ani, păstrând ziua/luna (31 feb -> martie, gestionat de
+/// [DateTime] automat).
+String? adaugaAniIso(String dataIso, int ani) {
+  final data = DateTime.tryParse(dataIso);
+  if (data == null) return null;
+  return _iso(DateTime(data.year + ani, data.month, data.day));
+}

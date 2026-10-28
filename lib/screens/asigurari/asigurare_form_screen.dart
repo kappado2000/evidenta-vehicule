@@ -37,7 +37,7 @@ class _AsigurareFormScreenState extends State<AsigurareFormScreen> {
     final a = widget.asigurare;
     _tip = a?.tip ?? 'RCA';
     _dataInceput = a?.dataInceput ?? azIso();
-    _dataExpirare = a?.dataExpirare ?? '';
+    _dataExpirare = a?.dataExpirare ?? adaugaAniIso(_dataInceput, 1) ?? '';
     _furnizorCtrl = TextEditingController(text: a?.furnizor ?? '');
     _politaCtrl = TextEditingController(text: a?.polita ?? '');
     _costCtrl = TextEditingController(text: a?.cost.toString() ?? '');
@@ -69,6 +69,9 @@ class _AsigurareFormScreenState extends State<AsigurareFormScreen> {
     setState(() {
       if (inceput) {
         _dataInceput = iso;
+        // Asigurarea e implicit anuală - expirarea se recalculează automat,
+        // rămâne editabilă manual după aceea.
+        _dataExpirare = adaugaAniIso(iso, 1) ?? _dataExpirare;
       } else {
         _dataExpirare = iso;
       }

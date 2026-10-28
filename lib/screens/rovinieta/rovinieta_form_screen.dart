@@ -34,9 +34,28 @@ class _RovinietaFormScreenState extends State<RovinietaFormScreen> {
     final r = widget.rovinieta;
     _tip = r?.tip ?? 'anuala';
     _dataInceput = r?.dataInceput ?? azIso();
-    _dataExpirare = r?.dataExpirare ?? '';
+    _dataExpirare = r?.dataExpirare ?? _calculeazaExpirare();
     _costCtrl = TextEditingController(text: r?.cost.toString() ?? '');
   }
+
+  /// Durata rovinietei după `_tip` - calcul automat al expirării, editabil
+  /// manual oricând după aceea.
+  String _calculeazaExpirare() {
+    switch (_tip) {
+      case '7zile':
+        return adaugaZileIso(_dataInceput, 7) ?? '';
+      case '30zile':
+        return adaugaZileIso(_dataInceput, 30) ?? '';
+      case '90zile':
+        return adaugaZileIso(_dataInceput, 90) ?? '';
+      case 'anuala':
+      default:
+        return adaugaAniIso(_dataInceput, 1) ?? '';
+    }
+  }
+
+  void _recalculeazaExpirare() =>
+      setState(() => _dataExpirare = _calculeazaExpirare());
 
   @override
   void dispose() {
@@ -64,6 +83,7 @@ class _RovinietaFormScreenState extends State<RovinietaFormScreen> {
         _dataExpirare = iso;
       }
     });
+    if (inceput) _recalculeazaExpirare();
   }
 
   Future<void> _salveaza() async {
@@ -119,7 +139,10 @@ class _RovinietaFormScreenState extends State<RovinietaFormScreen> {
             items: tipuriRovinieta
                 .map((t) => DropdownMenuItem(value: t, child: Text(t)))
                 .toList(),
-            onChanged: (v) => setState(() => _tip = v ?? 'anuala'),
+            onChanged: (v) {
+              setState(() => _tip = v ?? 'anuala');
+              _recalculeazaExpirare();
+            },
           ),
           const SizedBox(height: 12),
           ListTile(

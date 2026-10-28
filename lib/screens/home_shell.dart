@@ -36,6 +36,9 @@ class _HomeShellState extends State<HomeShell> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // Conținutul se derulează SUB bară (nu se oprește deasupra ei) - prin
+      // transparența bării se vede pagina rulând în spate, cerut explicit.
+      extendBody: true,
       // Navigator imbricat: orice `Navigator.of(context).push(...)` apelat
       // din ecranele tab-urilor (ex. VehiculDetaliuScreen) găsește ACEST
       // Navigator ca cel mai apropiat ascendent, nu pe cel al MaterialApp -
@@ -59,7 +62,7 @@ class _HomeShellState extends State<HomeShell> {
             elevation: 6,
             borderRadius: BorderRadius.circular(24),
             clipBehavior: Clip.antiAlias,
-            color: const Color(0xFF064A59).withValues(alpha: 0.92),
+            color: const Color(0xFF064A59).withValues(alpha: 0.8),
             child: Theme(
               data: Theme.of(context).copyWith(
                 navigationBarTheme: NavigationBarThemeData(
