@@ -140,6 +140,7 @@ class VehiculDetaliuScreen extends StatelessWidget {
             idItem: (i) => i.id,
             subtitluItem: (i) =>
                 'Expiră: ${formateazaDataRo(i.dataExpirare)} · ${i.cost.toStringAsFixed(0)} lei',
+            zileRamaseItem: (i) => zilePanaLa(i.dataExpirare),
             onAdauga: () => Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (_) => ItpFormScreen(vehiculId: vehiculId),
@@ -159,6 +160,7 @@ class VehiculDetaliuScreen extends StatelessWidget {
             idItem: (r) => r.id,
             subtitluItem: (r) =>
                 '${r.tip} · expiră: ${formateazaDataRo(r.dataExpirare)} · ${r.cost.toStringAsFixed(0)} lei',
+            zileRamaseItem: (r) => zilePanaLa(r.dataExpirare),
             onAdauga: () => Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (_) => RovinietaFormScreen(vehiculId: vehiculId),
@@ -179,6 +181,7 @@ class VehiculDetaliuScreen extends StatelessWidget {
             idItem: (a) => a.id,
             subtitluItem: (a) =>
                 '${a.tip} · ${a.furnizor} · expiră: ${formateazaDataRo(a.dataExpirare)} · ${a.cost.toStringAsFixed(0)} lei',
+            zileRamaseItem: (a) => zilePanaLa(a.dataExpirare),
             onAdauga: () => Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (_) => AsigurareFormScreen(vehiculId: vehiculId),
@@ -199,6 +202,7 @@ class VehiculDetaliuScreen extends StatelessWidget {
             idItem: (r) => r.id,
             subtitluItem: (r) =>
                 '${r.tip.isEmpty ? 'Revizie' : r.tip} · ${formateazaDataRo(r.data)} · ${r.costTotal.toStringAsFixed(0)} lei',
+            zileRamaseItem: (r) => zilePanaLa(r.proximData),
             onAdauga: () => Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (_) => RevizieFormScreen(vehiculId: vehiculId),
@@ -224,6 +228,7 @@ class _Sectiune<T> extends StatelessWidget {
   final List<T> items;
   final String Function(T) idItem;
   final String Function(T) subtitluItem;
+  final int? Function(T) zileRamaseItem;
   final VoidCallback onAdauga;
   final void Function(T item) onEditeaza;
   final Future<void> Function(String id) onSterge;
@@ -234,10 +239,20 @@ class _Sectiune<T> extends StatelessWidget {
     required this.items,
     required this.idItem,
     required this.subtitluItem,
+    required this.zileRamaseItem,
     required this.onAdauga,
     required this.onEditeaza,
     required this.onSterge,
   });
+
+  /// Verde = relaxat, galben = atenție, portocaliu/roșu = urgent/expirat —
+  /// aceleași praguri ca la alertele din Dashboard.
+  Color _culoareZile(int zile) {
+    if (zile < 0) return Colors.red.shade700;
+    if (zile <= 7) return Colors.orange.shade800;
+    if (zile <= 30) return Colors.amber.shade800;
+    return Colors.green.shade700;
+  }
 
   Future<bool> _confirmaStergere(BuildContext context) async {
     final confirma = await showDialog<bool>(
@@ -293,7 +308,32 @@ class _Sectiune<T> extends StatelessWidget {
                   ),
                 ),
                 title: Text(subtitluItem(item)),
-                trailing: const Icon(Icons.chevron_right, size: 20),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (zileRamaseItem(item) case final zile?)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: _culoareZile(zile),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          zile < 0 ? 'Expirat' : '${zile}z',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ),
+                    const SizedBox(width: 4),
+                    const Icon(Icons.chevron_right, size: 20),
+                  ],
+                ),
                 onTap: () => onEditeaza(item),
               ),
             ),
