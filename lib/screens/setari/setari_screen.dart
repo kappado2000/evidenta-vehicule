@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../providers/auth_provider.dart';
 import '../../providers/date_provider.dart';
+import '../garaj/garaj_screen.dart';
 
 class SetariScreen extends StatefulWidget {
   const SetariScreen({super.key});
@@ -162,6 +163,18 @@ class _SetariScreenState extends State<SetariScreen> {
               ),
               icon: const Icon(Icons.open_in_new),
               label: const Text('Deschide contul etoll.ro'),
+            ),
+            const Divider(height: 40),
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.group_outlined),
+                title: const Text('Garaj'),
+                subtitle: const Text('Membri și invitații'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => Navigator.of(
+                  context,
+                ).push(MaterialPageRoute(builder: (_) => const GarajScreen())),
+              ),
             ),
             const Divider(height: 40),
             OutlinedButton.icon(
