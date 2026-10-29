@@ -421,7 +421,7 @@ Widget _randDate(BuildContext context, String eticheta, String valoare) {
   );
 }
 
-class _Sectiune<T> extends StatelessWidget {
+class _Sectiune<T> extends StatefulWidget {
   final String titlu;
   final IconData icon;
   final Color culoareCategorie;
@@ -447,6 +447,17 @@ class _Sectiune<T> extends StatelessWidget {
     required this.onSterge,
   });
 
+  @override
+  State<_Sectiune<T>> createState() => _SectiuneState<T>();
+}
+
+/// Stare proprie de extindere, complet independentă de celelalte 3
+/// categorii - nu se mai bazează pe `ExpansionTile`, al cărui comportament
+/// de persistență a stării interfera între instanțe (deschiderea unei
+/// categorii le închidea pe celelalte, semnalat explicit de user).
+class _SectiuneState<T> extends State<_Sectiune<T>> {
+  bool _extins = false;
+
   /// Verde = relaxat, galben = atenție, portocaliu/roșu = urgent/expirat —
   /// aceleași praguri ca la alertele din Dashboard.
   Color _culoareZile(int zile) {
@@ -460,7 +471,7 @@ class _Sectiune<T> extends StatelessWidget {
     final confirma = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: Text('Ștergi din $titlu?'),
+        title: Text('Ștergi din ${widget.titlu}?'),
         content: const Text('Înregistrarea nu mai poate fi recuperată.'),
         actions: [
           TextButton(
@@ -483,14 +494,31 @@ class _Sectiune<T> extends StatelessWidget {
   /// de una nouă, nu mai e relevantă și n-ar trebui să arate "Expirat"
   /// pentru vehiculul curent.
   int? _zileMinime() {
-    if (items.isEmpty) return null;
-    return zileRamaseItem(items.first);
+    if (widget.items.isEmpty) return null;
+    return widget.zileRamaseItem(widget.items.first);
   }
 
   @override
   Widget build(BuildContext context) {
     final zile = _zileMinime();
     final culori = Theme.of(context).colorScheme;
+    // Text "gravat" în buton: umbră întunecată sus-stânga + reflex deschis
+    // jos-dreapta, dă impresia de literă scobită în material, nu imprimată.
+    final stilGravat = TextStyle(
+      color: culori.onSurface.withValues(alpha: 0.85),
+      shadows: [
+        Shadow(
+          offset: const Offset(-1, -1),
+          blurRadius: 1,
+          color: Colors.black.withValues(alpha: 0.45),
+        ),
+        Shadow(
+          offset: const Offset(1, 1),
+          blurRadius: 1,
+          color: Colors.white.withValues(alpha: 0.65),
+        ),
+      ],
+    );
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       clipBehavior: Clip.antiAlias,
@@ -499,107 +527,127 @@ class _Sectiune<T> extends StatelessWidget {
       color: culori.surfaceContainerHighest,
       // Aspect 3D (relief) pentru butonul de categorie - elevație vizibilă +
       // colțuri rotunjite, nu plat ca restul cardurilor.
-      elevation: 6,
-      shadowColor: Colors.black.withValues(alpha: 0.4),
+      elevation: 10,
+      // Material3 pune implicit un tonal overlay peste elevație, care
+      // "îneacă" umbra reală - îl dezactivăm ca să se vadă efectul 3D cerut.
+      surfaceTintColor: Colors.transparent,
+      shadowColor: Colors.black.withValues(alpha: 0.6),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: ExpansionTile(
-        // Cheie proprie, independentă de restul ExpansionTile-urilor, ca
-        // deschiderea unei categorii să nu le închidă pe celelalte deja
-        // deschise (semnalat explicit de user).
-        key: PageStorageKey(titlu),
-        leading: Icon(icon),
-        title: Row(
-          children: [
-            Expanded(
-              child: Text.rich(
-                TextSpan(
-                  text: titlu,
+      child: Column(
+        children: [
+          InkWell(
+            onTap: () => setState(() => _extins = !_extins),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                children: [
+                  Icon(widget.icon),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Text.rich(
+                      TextSpan(
+                        text: widget.titlu,
+                        style: stilGravat,
+                        children: [
+                          TextSpan(
+                            text: ' - ${widget.items.length}',
+                            style: stilGravat.copyWith(fontSize: 12),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  if (zile != null) ...[
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: _culoareZile(zile),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        zile < 0 ? 'Expirat' : '${zile}z',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                  ],
+                  Icon(_extins ? Icons.expand_less : Icons.expand_more),
+                ],
+              ),
+            ),
+          ),
+          if (_extins) ...[
+            for (final (index, item) in widget.items.indexed)
+              // Fundal alternant (deschis/mai deschis) + separator, ca
+              // fiecare înregistrare să fie vizibil distinctă de vecinele ei
+              // și de antetul mai închis de deasupra.
+              Container(
+                color: Color.alphaBlend(
+                  widget.culoareCategorie.withValues(
+                    alpha: index.isEven ? 0.1 : 0.2,
+                  ),
+                  culori.surface,
+                ),
+                child: Column(
                   children: [
-                    TextSpan(
-                      text: ' - ${items.length}',
-                      style: const TextStyle(fontSize: 12),
+                    if (index > 0) const Divider(height: 1),
+                    Dismissible(
+                      key: ValueKey(widget.idItem(item)),
+                      direction: DismissDirection.endToStart,
+                      background: Container(
+                        alignment: Alignment.centerRight,
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        color: culori.error,
+                        child: Icon(
+                          Icons.delete_outline,
+                          color: culori.onError,
+                        ),
+                      ),
+                      confirmDismiss: (_) => _confirmaStergere(context),
+                      onDismissed: (_) => widget.onSterge(widget.idItem(item)),
+                      child: ListTile(
+                        leading: CircleAvatar(
+                          radius: 13,
+                          child: Text(
+                            '${index + 1}',
+                            style: const TextStyle(fontSize: 12),
+                          ),
+                        ),
+                        title: Text(
+                          widget.subtitluItem(item),
+                          style: const TextStyle(fontSize: 12),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        trailing: const Icon(Icons.chevron_right, size: 20),
+                        onTap: () => widget.onEditeaza(item),
+                      ),
                     ),
                   ],
                 ),
               ),
-            ),
-            if (zile != null)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: _culoareZile(zile),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  zile < 0 ? 'Expirat' : '${zile}z',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 11,
-                  ),
-                ),
-              ),
-          ],
-        ),
-        children: [
-          for (final (index, item) in items.indexed)
-            // Fundal alternant (deschis/mai deschis) + separator, ca fiecare
-            // înregistrare să fie vizibil distinctă de vecinele ei și de
-            // antetul mai închis de deasupra.
             Container(
-              color: Color.alphaBlend(
-                culoareCategorie.withValues(alpha: index.isEven ? 0.1 : 0.2),
-                culori.surface,
-              ),
-              child: Column(
-                children: [
-                  if (index > 0) const Divider(height: 1),
-                  Dismissible(
-                    key: ValueKey(idItem(item)),
-                    direction: DismissDirection.endToStart,
-                    background: Container(
-                      alignment: Alignment.centerRight,
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      color: culori.error,
-                      child: Icon(Icons.delete_outline, color: culori.onError),
-                    ),
-                    confirmDismiss: (_) => _confirmaStergere(context),
-                    onDismissed: (_) => onSterge(idItem(item)),
-                    child: ListTile(
-                      leading: CircleAvatar(
-                        radius: 13,
-                        child: Text(
-                          '${index + 1}',
-                          style: const TextStyle(fontSize: 12),
-                        ),
-                      ),
-                      title: Text(
-                        subtitluItem(item),
-                        style: const TextStyle(fontSize: 12),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      trailing: const Icon(Icons.chevron_right, size: 20),
-                      onTap: () => onEditeaza(item),
-                    ),
-                  ),
-                ],
+              color: culori.surface,
+              padding: const EdgeInsets.all(8),
+              width: double.infinity,
+              child: FilledButton.icon(
+                style: FilledButton.styleFrom(
+                  backgroundColor: culori.primary,
+                  foregroundColor: culori.onPrimary,
+                ),
+                onPressed: widget.onAdauga,
+                icon: const Icon(Icons.add),
+                label: Text('Adaugă ${widget.titlu}'),
               ),
             ),
-          Container(
-            color: culori.surface,
-            padding: const EdgeInsets.all(8),
-            width: double.infinity,
-            child: FilledButton.icon(
-              style: FilledButton.styleFrom(
-                backgroundColor: culori.primary,
-                foregroundColor: culori.onPrimary,
-              ),
-              onPressed: onAdauga,
-              icon: const Icon(Icons.add),
-              label: Text('Adaugă $titlu'),
-            ),
-          ),
+          ],
         ],
       ),
     );
