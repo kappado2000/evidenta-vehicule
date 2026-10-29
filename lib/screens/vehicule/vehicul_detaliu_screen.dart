@@ -198,14 +198,6 @@ class _VehiculDetaliuScreenState extends State<VehiculDetaliuScreen> {
                                   'Anvelope',
                                   vehicul.anvelope,
                                 ),
-                              if (vehicul.observatii.isNotEmpty) ...[
-                                const Divider(height: 16),
-                                _randDate(
-                                  context,
-                                  'Observații',
-                                  vehicul.observatii,
-                                ),
-                              ],
                               const SizedBox(height: 4),
                               Row(
                                 children: [
@@ -220,7 +212,7 @@ class _VehiculDetaliuScreenState extends State<VehiculDetaliuScreen> {
                                   ),
                                   const SizedBox(width: 2),
                                   Text(
-                                    _arataDocumente ? 'Ascunde actele' : 'Atinge pentru talon și carte de identitate',
+                                    _arataDocumente ? 'Ascunde detaliile' : 'Atinge pentru observații, talon și carte de identitate',
                                     style: TextStyle(
                                       fontSize: 12,
                                       color: Theme.of(context)
@@ -235,6 +227,14 @@ class _VehiculDetaliuScreenState extends State<VehiculDetaliuScreen> {
                         ),
                         if (_arataDocumente) ...[
                           const Divider(height: 24),
+                          if (vehicul.observatii.isNotEmpty) ...[
+                            _randDate(
+                              context,
+                              'Observații',
+                              vehicul.observatii,
+                            ),
+                            const SizedBox(height: 8),
+                          ],
                           _SectiuneDocumente(
                             titlu: 'Talon',
                             icon: Icons.description_outlined,
@@ -497,6 +497,11 @@ class _Sectiune<T> extends StatelessWidget {
       // Antetul categoriei (buton) rămâne ton unic, neschimbat - doar
       // înregistrările de dedesubt au tenta proprie fiecărei categorii.
       color: culori.surfaceContainerHighest,
+      // Aspect 3D (relief) pentru butonul de categorie - elevație vizibilă +
+      // colțuri rotunjite, nu plat ca restul cardurilor.
+      elevation: 6,
+      shadowColor: Colors.black.withValues(alpha: 0.4),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: ExpansionTile(
         // Cheie proprie, independentă de restul ExpansionTile-urilor, ca
         // deschiderea unei categorii să nu le închidă pe celelalte deja
@@ -505,7 +510,19 @@ class _Sectiune<T> extends StatelessWidget {
         leading: Icon(icon),
         title: Row(
           children: [
-            Expanded(child: Text('$titlu (${items.length})')),
+            Expanded(
+              child: Text.rich(
+                TextSpan(
+                  text: titlu,
+                  children: [
+                    TextSpan(
+                      text: ' - ${items.length}',
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
+            ),
             if (zile != null)
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
