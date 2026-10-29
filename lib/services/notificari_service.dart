@@ -51,11 +51,13 @@ class NotificariService {
     // Pe iOS, `getToken()` eșuează cu „apns-token-not-set" dacă e apelat
     // înainte ca sistemul să fi livrat deja tokenul APNs către FCM - e o
     // cursă reală pe dispozitiv fizic, nu o eroare de configurare. Așteptăm
-    // tokenul APNs, cu reîncercări, înainte de a cere tokenul FCM.
+    // tokenul APNs, cu reîncercări, înainte de a cere tokenul FCM. La prima
+    // pornire după o instalare proaspătă (TestFlight), înregistrarea la
+    // APNs poate dura mai mult de 10s - de-aia fereastra e de 30s.
     if (!kIsWeb && Platform.isIOS) {
       var apnsToken = await _messaging.getAPNSToken();
       var incercari = 0;
-      while (apnsToken == null && incercari < 10) {
+      while (apnsToken == null && incercari < 30) {
         await Future.delayed(const Duration(seconds: 1));
         apnsToken = await _messaging.getAPNSToken();
         incercari++;
