@@ -88,7 +88,7 @@ class _SetariScreenState extends State<SetariScreen> {
         child: ListView(
           // Padding jos generos - bara de navigare e plutitoare (peste
           // conținut, Scaffold.extendBody).
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 130),
           children: [
             if (auth.eroareInregistrareNotificari != null)
               Card(
@@ -232,7 +232,11 @@ class _SetariScreenState extends State<SetariScreen> {
               ),
             ),
             const Divider(height: 40),
-            OutlinedButton.icon(
+            FilledButton.icon(
+              style: FilledButton.styleFrom(
+                backgroundColor: Colors.red.shade700,
+                foregroundColor: Colors.white,
+              ),
               onPressed: () => context.read<AuthProvider>().delogare(),
               icon: const Icon(Icons.logout),
               label: const Text('Delogare'),

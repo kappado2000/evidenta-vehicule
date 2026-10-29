@@ -35,12 +35,18 @@ class ListaVehiculeScreen extends StatelessWidget {
                 return _CardVehicul(vehicul: v);
               },
             ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Theme.of(context).colorScheme.onPrimary,
-        onPressed: () => Navigator.of(context)
-            .push(MaterialPageRoute(builder: (_) => const VehiculFormScreen())),
-        child: const Icon(Icons.add),
+      // Padding jos - bara de navigare e plutitoare peste conținut
+      // (Scaffold.extendBody), altfel butonul rămâne ascuns sub ea.
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 80),
+        child: FloatingActionButton(
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          foregroundColor: Theme.of(context).colorScheme.onPrimary,
+          onPressed: () => Navigator.of(
+            context,
+          ).push(MaterialPageRoute(builder: (_) => const VehiculFormScreen())),
+          child: const Icon(Icons.add),
+        ),
       ),
     );
   }
