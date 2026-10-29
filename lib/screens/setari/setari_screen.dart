@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../providers/auth_provider.dart';
 import '../../providers/date_provider.dart';
+import '../../services/garaj_service.dart';
 import '../garaj/garaj_screen.dart';
 
 class SetariScreen extends StatefulWidget {
@@ -20,6 +21,8 @@ class _SetariScreenState extends State<SetariScreen> {
   late TextEditingController _revCtrl;
   int _oraNotificare = 8;
   bool _initializat = false;
+  final _garajService = GarajService();
+  bool _seTrimiteTest = false;
 
   void _initializeaza(SetariAlerte s) {
     if (_initializat) return;
@@ -44,6 +47,30 @@ class _SetariScreenState extends State<SetariScreen> {
     if (mounted) {
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text('Setări salvate.')));
+    }
+  }
+
+  Future<void> _trimiteNotificareTest() async {
+    setState(() => _seTrimiteTest = true);
+    try {
+      final r = await _garajService.trimiteNotificareTest();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            r.trimise > 0
+                ? 'Trimisă cu succes către ${r.trimise}/${r.total} dispozitive.'
+                : 'Niciun dispozitiv n-a primit-o (${r.esuate}/${r.total} eșuate). '
+                      'Apasă din nou „Reîncearcă" mai sus.',
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Eroare: $e')));
+    } finally {
+      if (mounted) setState(() => _seTrimiteTest = false);
     }
   }
 
@@ -87,6 +114,18 @@ class _SetariScreenState extends State<SetariScreen> {
                   ),
                 ),
               ),
+            OutlinedButton.icon(
+              onPressed: _seTrimiteTest ? null : _trimiteNotificareTest,
+              icon: _seTrimiteTest
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.notifications_active_outlined),
+              label: const Text('Trimite notificare de test'),
+            ),
+            const Divider(height: 40),
             Text(
               'Praguri alertă (zile înainte de expirare)',
               style: Theme.of(context).textTheme.titleMedium,

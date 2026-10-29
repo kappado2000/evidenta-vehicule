@@ -52,6 +52,21 @@ class GarajService {
     await _functions.httpsCallable('eliminaMembruGaraj').call({'uid': uid});
   }
 
+  /// Trimite un push de test pe TOATE tokenurile proprii (fcmTokens) - ca
+  /// userul să poată verifica imediat dacă notificarea chiar ajunge pe
+  /// dispozitiv, fără să aștepte trimiterea zilnică programată.
+  Future<({int total, int trimise, int esuate})> trimiteNotificareTest() async {
+    final rezultat = await _functions
+        .httpsCallable('trimiteNotificareTest')
+        .call<Map<String, dynamic>>();
+    final data = rezultat.data;
+    return (
+      total: data['total'] as int? ?? 0,
+      trimise: data['trimise'] as int? ?? 0,
+      esuate: data['esuate'] as int? ?? 0,
+    );
+  }
+
   /// Document `garaje/{garajId}` — doar citire, scrierile trec prin funcții.
   Stream<DocumentSnapshot<Map<String, dynamic>>> ascultaGaraj(String garajId) {
     return _db.collection('garaje').doc(garajId).snapshots();
