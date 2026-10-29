@@ -519,20 +519,40 @@ class _SectiuneState<T> extends State<_Sectiune<T>> {
         ),
       ],
     );
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 14),
       clipBehavior: Clip.antiAlias,
-      // Antetul categoriei (buton) rămâne ton unic, neschimbat - doar
-      // înregistrările de dedesubt au tenta proprie fiecărei categorii.
-      color: culori.surfaceContainerHighest,
-      // Aspect 3D (relief) pentru butonul de categorie - elevație vizibilă +
-      // colțuri rotunjite, nu plat ca restul cardurilor.
-      elevation: 10,
-      // Material3 pune implicit un tonal overlay peste elevație, care
-      // "îneacă" umbra reală - îl dezactivăm ca să se vadă efectul 3D cerut.
-      surfaceTintColor: Colors.transparent,
-      shadowColor: Colors.black.withValues(alpha: 0.6),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        // Gradient ușor (mai deschis sus, ton normal jos) - simulează o
+        // suprafață curbată, ridicată. Umbră explicită, puternică, desenată
+        // manual (nu elevația Material, care pe unele device-uri iese prea
+        // subtilă ca să fie sesizabilă).
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Color.alphaBlend(
+              Colors.white.withValues(alpha: 0.5),
+              culori.surfaceContainerHighest,
+            ),
+            culori.surfaceContainerHighest,
+          ],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.5),
+            offset: const Offset(0, 5),
+            blurRadius: 10,
+            spreadRadius: 1,
+          ),
+          BoxShadow(
+            color: Colors.white.withValues(alpha: 0.6),
+            offset: const Offset(0, -1),
+            blurRadius: 2,
+          ),
+        ],
+      ),
       child: Column(
         children: [
           InkWell(
