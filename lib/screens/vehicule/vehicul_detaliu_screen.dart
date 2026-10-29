@@ -28,6 +28,19 @@ class VehiculDetaliuScreen extends StatefulWidget {
 
 class _VehiculDetaliuScreenState extends State<VehiculDetaliuScreen> {
   bool _arataDocumente = false;
+  // Stare de extindere a celor 4 categorii, ținută AICI (în ecranul părinte,
+  // care nu e niciodată eliminat din arbore la derulare) - nu în fiecare
+  // card în parte: un card e un element din ListView și Flutter îi distruge
+  // starea internă când iese suficient din ecran la scroll, resetând
+  // extinderea la închis quando revii la el. Mai multe categorii pot fi
+  // deschise simultan (independent, nu acordeon).
+  final Set<String> _categoriiExtinse = {};
+
+  void _comutaCategorie(String titlu) {
+    setState(() {
+      if (!_categoriiExtinse.remove(titlu)) _categoriiExtinse.add(titlu);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -268,6 +281,8 @@ class _VehiculDetaliuScreenState extends State<VehiculDetaliuScreen> {
                   titlu: 'ITP',
                   icon: Icons.fact_check_outlined,
                   culoareCategorie: Colors.blue,
+                  extins: _categoriiExtinse.contains('ITP'),
+                  onToggle: () => _comutaCategorie('ITP'),
                   items: itpuri,
                   idItem: (i) => i.id,
                   subtitluItem: (i) =>
@@ -291,6 +306,8 @@ class _VehiculDetaliuScreenState extends State<VehiculDetaliuScreen> {
                   titlu: 'Rovinietă',
                   icon: Icons.toll_outlined,
                   culoareCategorie: Colors.deepOrange,
+                  extins: _categoriiExtinse.contains('Rovinietă'),
+                  onToggle: () => _comutaCategorie('Rovinietă'),
                   items: rovinete,
                   idItem: (r) => r.id,
                   subtitluItem: (r) =>
@@ -316,6 +333,8 @@ class _VehiculDetaliuScreenState extends State<VehiculDetaliuScreen> {
                   titlu: 'Asigurări',
                   icon: Icons.shield_outlined,
                   culoareCategorie: Colors.green,
+                  extins: _categoriiExtinse.contains('Asigurări'),
+                  onToggle: () => _comutaCategorie('Asigurări'),
                   items: asigurari,
                   idItem: (a) => a.id,
                   subtitluItem: (a) =>
@@ -341,6 +360,8 @@ class _VehiculDetaliuScreenState extends State<VehiculDetaliuScreen> {
                   titlu: 'Revizii',
                   icon: Icons.build_outlined,
                   culoareCategorie: Colors.deepPurple,
+                  extins: _categoriiExtinse.contains('Revizii'),
+                  onToggle: () => _comutaCategorie('Revizii'),
                   items: revizii,
                   idItem: (r) => r.id,
                   subtitluItem: (r) =>
@@ -421,10 +442,16 @@ Widget _randDate(BuildContext context, String eticheta, String valoare) {
   );
 }
 
-class _Sectiune<T> extends StatefulWidget {
+class _Sectiune<T> extends StatelessWidget {
   final String titlu;
   final IconData icon;
   final Color culoareCategorie;
+  // Starea de extindere vine din ecranul părinte (vezi `_categoriiExtinse`
+  // pe `_VehiculDetaliuScreenState`) - ținută aici local, un card expandat
+  // care iese din ecran la derulare e distrus de Flutter (element din
+  // ListView) și starea lui s-ar pierde la revenire.
+  final bool extins;
+  final VoidCallback onToggle;
   final List<T> items;
   final String Function(T) idItem;
   final String Function(T) subtitluItem;
@@ -438,6 +465,8 @@ class _Sectiune<T> extends StatefulWidget {
     required this.titlu,
     required this.icon,
     required this.culoareCategorie,
+    required this.extins,
+    required this.onToggle,
     required this.items,
     required this.idItem,
     required this.subtitluItem,
@@ -446,17 +475,6 @@ class _Sectiune<T> extends StatefulWidget {
     required this.onEditeaza,
     required this.onSterge,
   });
-
-  @override
-  State<_Sectiune<T>> createState() => _SectiuneState<T>();
-}
-
-/// Stare proprie de extindere, complet independentă de celelalte 3
-/// categorii - nu se mai bazează pe `ExpansionTile`, al cărui comportament
-/// de persistență a stării interfera între instanțe (deschiderea unei
-/// categorii le închidea pe celelalte, semnalat explicit de user).
-class _SectiuneState<T> extends State<_Sectiune<T>> {
-  bool _extins = false;
 
   /// Verde = relaxat, galben = atenție, portocaliu/roșu = urgent/expirat —
   /// aceleași praguri ca la alertele din Dashboard.
@@ -471,7 +489,7 @@ class _SectiuneState<T> extends State<_Sectiune<T>> {
     final confirma = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: Text('Ștergi din ${widget.titlu}?'),
+        title: Text('Ștergi din $titlu?'),
         content: const Text('Înregistrarea nu mai poate fi recuperată.'),
         actions: [
           TextButton(
@@ -494,8 +512,8 @@ class _SectiuneState<T> extends State<_Sectiune<T>> {
   /// de una nouă, nu mai e relevantă și n-ar trebui să arate "Expirat"
   /// pentru vehiculul curent.
   int? _zileMinime() {
-    if (widget.items.isEmpty) return null;
-    return widget.zileRamaseItem(widget.items.first);
+    if (items.isEmpty) return null;
+    return zileRamaseItem(items.first);
   }
 
   @override
@@ -556,21 +574,21 @@ class _SectiuneState<T> extends State<_Sectiune<T>> {
       child: Column(
         children: [
           InkWell(
-            onTap: () => setState(() => _extins = !_extins),
+            onTap: onToggle,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Row(
                 children: [
-                  Icon(widget.icon),
+                  Icon(icon),
                   const SizedBox(width: 16),
                   Expanded(
                     child: Text.rich(
                       TextSpan(
-                        text: widget.titlu,
+                        text: titlu,
                         style: stilGravat,
                         children: [
                           TextSpan(
-                            text: ' - ${widget.items.length}',
+                            text: ' - ${items.length}',
                             style: stilGravat.copyWith(fontSize: 12),
                           ),
                         ],
@@ -598,28 +616,26 @@ class _SectiuneState<T> extends State<_Sectiune<T>> {
                     ),
                     const SizedBox(width: 8),
                   ],
-                  Icon(_extins ? Icons.expand_less : Icons.expand_more),
+                  Icon(extins ? Icons.expand_less : Icons.expand_more),
                 ],
               ),
             ),
           ),
-          if (_extins) ...[
-            for (final (index, item) in widget.items.indexed)
+          if (extins) ...[
+            for (final (index, item) in items.indexed)
               // Fundal alternant (deschis/mai deschis) + separator, ca
               // fiecare înregistrare să fie vizibil distinctă de vecinele ei
               // și de antetul mai închis de deasupra.
               Container(
                 color: Color.alphaBlend(
-                  widget.culoareCategorie.withValues(
-                    alpha: index.isEven ? 0.1 : 0.2,
-                  ),
+                  culoareCategorie.withValues(alpha: index.isEven ? 0.1 : 0.2),
                   culori.surface,
                 ),
                 child: Column(
                   children: [
                     if (index > 0) const Divider(height: 1),
                     Dismissible(
-                      key: ValueKey(widget.idItem(item)),
+                      key: ValueKey(idItem(item)),
                       direction: DismissDirection.endToStart,
                       background: Container(
                         alignment: Alignment.centerRight,
@@ -631,7 +647,7 @@ class _SectiuneState<T> extends State<_Sectiune<T>> {
                         ),
                       ),
                       confirmDismiss: (_) => _confirmaStergere(context),
-                      onDismissed: (_) => widget.onSterge(widget.idItem(item)),
+                      onDismissed: (_) => onSterge(idItem(item)),
                       child: ListTile(
                         leading: CircleAvatar(
                           radius: 13,
@@ -641,13 +657,13 @@ class _SectiuneState<T> extends State<_Sectiune<T>> {
                           ),
                         ),
                         title: Text(
-                          widget.subtitluItem(item),
+                          subtitluItem(item),
                           style: const TextStyle(fontSize: 12),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                         trailing: const Icon(Icons.chevron_right, size: 20),
-                        onTap: () => widget.onEditeaza(item),
+                        onTap: () => onEditeaza(item),
                       ),
                     ),
                   ],
@@ -662,9 +678,9 @@ class _SectiuneState<T> extends State<_Sectiune<T>> {
                   backgroundColor: culori.primary,
                   foregroundColor: culori.onPrimary,
                 ),
-                onPressed: widget.onAdauga,
+                onPressed: onAdauga,
                 icon: const Icon(Icons.add),
-                label: Text('Adaugă ${widget.titlu}'),
+                label: Text('Adaugă $titlu'),
               ),
             ),
           ],
