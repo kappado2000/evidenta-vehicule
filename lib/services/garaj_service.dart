@@ -55,15 +55,23 @@ class GarajService {
   /// Trimite un push de test pe TOATE tokenurile proprii (fcmTokens) - ca
   /// userul să poată verifica imediat dacă notificarea chiar ajunge pe
   /// dispozitiv, fără să aștepte trimiterea zilnică programată.
-  Future<({int total, int trimise, int esuate})> trimiteNotificareTest() async {
+  Future<({int total, int trimise, int esuate, List<String> erori})>
+  trimiteNotificareTest() async {
     final rezultat = await _functions
         .httpsCallable('trimiteNotificareTest')
         .call<Map<String, dynamic>>();
     final data = rezultat.data;
+    final detalii = (data['detalii'] as List?) ?? [];
+    final erori = detalii
+        .cast<Map>()
+        .where((d) => d['ok'] != true)
+        .map((d) => '${d['token']}: ${d['eroare']}')
+        .toList();
     return (
       total: data['total'] as int? ?? 0,
       trimise: data['trimise'] as int? ?? 0,
       esuate: data['esuate'] as int? ?? 0,
+      erori: erori,
     );
   }
 

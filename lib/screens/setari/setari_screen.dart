@@ -55,16 +55,35 @@ class _SetariScreenState extends State<SetariScreen> {
     try {
       final r = await _garajService.trimiteNotificareTest();
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            r.trimise > 0
-                ? 'Trimisă cu succes către ${r.trimise}/${r.total} dispozitive.'
-                : 'Niciun dispozitiv n-a primit-o (${r.esuate}/${r.total} eșuate). '
-                      'Apasă din nou „Reîncearcă" mai sus.',
+      if (r.trimise > 0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Trimisă cu succes către ${r.trimise}/${r.total} dispozitive.',
+            ),
           ),
-        ),
-      );
+        );
+      } else {
+        showDialog<void>(
+          context: context,
+          builder: (_) => AlertDialog(
+            title: const Text('Niciun dispozitiv n-a primit-o'),
+            content: SingleChildScrollView(
+              child: Text(
+                r.erori.isEmpty
+                    ? '${r.esuate}/${r.total} eșuate, fără detalii.'
+                    : r.erori.join('\n'),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context)
