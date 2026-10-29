@@ -280,7 +280,6 @@ class _VehiculDetaliuScreenState extends State<VehiculDetaliuScreen> {
                   key: const PageStorageKey('sectiune_itp'),
                   titlu: 'ITP',
                   icon: Icons.fact_check_outlined,
-                  culoareCategorie: Colors.blue,
                   extins: _categoriiExtinse.contains('ITP'),
                   onToggle: () => _comutaCategorie('ITP'),
                   items: itpuri,
@@ -305,7 +304,6 @@ class _VehiculDetaliuScreenState extends State<VehiculDetaliuScreen> {
                   key: const PageStorageKey('sectiune_rovinieta'),
                   titlu: 'Rovinietă',
                   icon: Icons.toll_outlined,
-                  culoareCategorie: Colors.deepOrange,
                   extins: _categoriiExtinse.contains('Rovinietă'),
                   onToggle: () => _comutaCategorie('Rovinietă'),
                   items: rovinete,
@@ -332,7 +330,6 @@ class _VehiculDetaliuScreenState extends State<VehiculDetaliuScreen> {
                   key: const PageStorageKey('sectiune_asigurari'),
                   titlu: 'Asigurări',
                   icon: Icons.shield_outlined,
-                  culoareCategorie: Colors.green,
                   extins: _categoriiExtinse.contains('Asigurări'),
                   onToggle: () => _comutaCategorie('Asigurări'),
                   items: asigurari,
@@ -359,7 +356,6 @@ class _VehiculDetaliuScreenState extends State<VehiculDetaliuScreen> {
                   key: const PageStorageKey('sectiune_revizii'),
                   titlu: 'Revizii',
                   icon: Icons.build_outlined,
-                  culoareCategorie: Colors.deepPurple,
                   extins: _categoriiExtinse.contains('Revizii'),
                   onToggle: () => _comutaCategorie('Revizii'),
                   items: revizii,
@@ -445,7 +441,6 @@ Widget _randDate(BuildContext context, String eticheta, String valoare) {
 class _Sectiune<T> extends StatelessWidget {
   final String titlu;
   final IconData icon;
-  final Color culoareCategorie;
   // Starea de extindere vine din ecranul părinte (vezi `_categoriiExtinse`
   // pe `_VehiculDetaliuScreenState`) - ținută aici local, un card expandat
   // care iese din ecran la derulare e distrus de Flutter (element din
@@ -464,7 +459,6 @@ class _Sectiune<T> extends StatelessWidget {
     super.key,
     required this.titlu,
     required this.icon,
-    required this.culoareCategorie,
     required this.extins,
     required this.onToggle,
     required this.items,
@@ -623,55 +617,55 @@ class _Sectiune<T> extends StatelessWidget {
           ),
           if (extins) ...[
             for (final (index, item) in items.indexed)
-              // Fundal alternant (deschis/mai deschis) + separator, ca
-              // fiecare înregistrare să fie vizibil distinctă de vecinele ei
-              // și de antetul mai închis de deasupra.
+              // O singură culoare (albastru) pentru toate cele 4 categorii
+              // când sunt deschise, nu mai e diferită per categorie - plus
+              // bordură închisă și rânduri mai înguste pe înălțime.
               Container(
-                // Amestec pornind de la alb pur, nu de la `culori.surface`
-                // (care are deja o tentă teal de la accentul aplicației) -
-                // altfel culoarea categoriei se pierdea în acel teal și
-                // toate cele 4 categorii ieșeau la fel.
-                color: Color.lerp(
-                  Colors.white,
-                  culoareCategorie,
-                  index.isEven ? 0.18 : 0.32,
+                margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Color.lerp(
+                    Colors.white,
+                    Colors.blue,
+                    index.isEven ? 0.18 : 0.32,
+                  ),
+                  border: Border.all(
+                    color: Colors.blue.shade900.withValues(alpha: 0.6),
+                  ),
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                child: Column(
-                  children: [
-                    if (index > 0) const Divider(height: 1),
-                    Dismissible(
-                      key: ValueKey(idItem(item)),
-                      direction: DismissDirection.endToStart,
-                      background: Container(
-                        alignment: Alignment.centerRight,
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        color: culori.error,
-                        child: Icon(
-                          Icons.delete_outline,
-                          color: culori.onError,
-                        ),
-                      ),
-                      confirmDismiss: (_) => _confirmaStergere(context),
-                      onDismissed: (_) => onSterge(idItem(item)),
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          radius: 13,
-                          child: Text(
-                            '${index + 1}',
-                            style: const TextStyle(fontSize: 12),
-                          ),
-                        ),
-                        title: Text(
-                          subtitluItem(item),
-                          style: const TextStyle(fontSize: 12),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        trailing: const Icon(Icons.chevron_right, size: 20),
-                        onTap: () => onEditeaza(item),
+                child: Dismissible(
+                  key: ValueKey(idItem(item)),
+                  direction: DismissDirection.endToStart,
+                  background: Container(
+                    alignment: Alignment.centerRight,
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    decoration: BoxDecoration(
+                      color: culori.error,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(Icons.delete_outline, color: culori.onError),
+                  ),
+                  confirmDismiss: (_) => _confirmaStergere(context),
+                  onDismissed: (_) => onSterge(idItem(item)),
+                  child: ListTile(
+                    dense: true,
+                    visualDensity: const VisualDensity(vertical: -4),
+                    leading: CircleAvatar(
+                      radius: 11,
+                      child: Text(
+                        '${index + 1}',
+                        style: const TextStyle(fontSize: 11),
                       ),
                     ),
-                  ],
+                    title: Text(
+                      subtitluItem(item),
+                      style: const TextStyle(fontSize: 12),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    trailing: const Icon(Icons.chevron_right, size: 18),
+                    onTap: () => onEditeaza(item),
+                  ),
                 ),
               ),
             Container(
