@@ -127,7 +127,13 @@ class NotificariService {
         titlu,
         corp,
         const NotificationDetails(
-          iOS: DarwinNotificationDetails(presentSound: true),
+          iOS: DarwinNotificationDetails(
+            presentAlert: true,
+            presentBanner: true,
+            presentBadge: true,
+            presentSound: true,
+            presentList: true,
+          ),
           android: AndroidNotificationDetails(
             'evidenta_auto_alerte',
             'Alerte vehicule',
