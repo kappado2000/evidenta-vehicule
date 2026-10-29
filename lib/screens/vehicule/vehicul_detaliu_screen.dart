@@ -179,37 +179,56 @@ class _VehiculDetaliuScreenState extends State<VehiculDetaliuScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              if (vehicul.an != null)
-                                _randDate(context, 'An', '${vehicul.an}'),
-                              if (vehicul.km != null)
-                                _randDate(context, 'Km', '${vehicul.km}'),
-                              if (vehicul.combustibil.isNotEmpty)
-                                _randDate(
-                                  context,
-                                  'Combustibil',
-                                  vehicul.combustibil,
-                                ),
-                              if (vehicul.vin.isNotEmpty)
-                                _randDate(context, 'VIN', vehicul.vin),
-                              if (vehicul.culoare.isNotEmpty)
-                                _randDate(context, 'Culoare', vehicul.culoare),
-                              if (vehicul.putereCP != null)
-                                _randDate(
-                                  context,
-                                  'Putere',
-                                  '${vehicul.putereCP} CP',
-                                ),
-                              if (vehicul.capacitateCilindrica != null)
-                                _randDate(
-                                  context,
-                                  'Capacitate',
-                                  '${vehicul.capacitateCilindrica} cmc',
-                                ),
-                              if (vehicul.anvelope.isNotEmpty)
-                                _randDate(
-                                  context,
-                                  'Anvelope',
-                                  vehicul.anvelope,
+                              // Câte 2 câmpuri pe rând, nu unul singur - cardul
+                              // ocupă mai puțin pe înălțime, lăsând butoanele
+                              // celor 4 categorii să încapă mai bine pe ecran.
+                              for (final pereche in _perechi([
+                                if (vehicul.an != null)
+                                  _randDate(context, 'An', '${vehicul.an}'),
+                                if (vehicul.km != null)
+                                  _randDate(context, 'Km', '${vehicul.km}'),
+                                if (vehicul.combustibil.isNotEmpty)
+                                  _randDate(
+                                    context,
+                                    'Combustibil',
+                                    vehicul.combustibil,
+                                  ),
+                                if (vehicul.vin.isNotEmpty)
+                                  _randDate(context, 'VIN', vehicul.vin),
+                                if (vehicul.culoare.isNotEmpty)
+                                  _randDate(
+                                    context,
+                                    'Culoare',
+                                    vehicul.culoare,
+                                  ),
+                                if (vehicul.putereCP != null)
+                                  _randDate(
+                                    context,
+                                    'Putere',
+                                    '${vehicul.putereCP} CP',
+                                  ),
+                                if (vehicul.capacitateCilindrica != null)
+                                  _randDate(
+                                    context,
+                                    'Capacitate',
+                                    '${vehicul.capacitateCilindrica} cmc',
+                                  ),
+                                if (vehicul.anvelope.isNotEmpty)
+                                  _randDate(
+                                    context,
+                                    'Anvelope',
+                                    vehicul.anvelope,
+                                  ),
+                              ]))
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Expanded(child: pereche.$1),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: pereche.$2 ?? const SizedBox(),
+                                    ),
+                                  ],
                                 ),
                               const SizedBox(height: 4),
                               Row(
@@ -415,6 +434,14 @@ class _FotoIntreagaScreen extends StatelessWidget {
     );
   }
 }
+
+/// Grupează o listă de widget-uri câte 2, pentru afișare pe rânduri de câte
+/// 2 coloane (vezi `_randDate`) — ultimul rând rămâne cu al doilea `null`
+/// dacă numărul de câmpuri e impar.
+List<(Widget, Widget?)> _perechi(List<Widget> items) => [
+  for (var i = 0; i < items.length; i += 2)
+    (items[i], i + 1 < items.length ? items[i + 1] : null),
+];
 
 /// Rând „etichetă: valoare" pentru cardul vehiculului — etichetă bolduită,
 /// valoare normală, scris mai mic decât titlul (userul a cerut explicit
