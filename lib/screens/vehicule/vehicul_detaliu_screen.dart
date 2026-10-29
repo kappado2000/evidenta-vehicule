@@ -623,11 +623,7 @@ class _Sectiune<T> extends StatelessWidget {
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  color: Color.lerp(
-                    Colors.white,
-                    Colors.blue,
-                    index.isEven ? 0.18 : 0.32,
-                  ),
+                  color: Color.lerp(Colors.white, Colors.blue, 0.18),
                   border: Border.all(
                     color: Colors.blue.shade900.withValues(alpha: 0.6),
                   ),
