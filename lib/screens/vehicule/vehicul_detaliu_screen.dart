@@ -32,13 +32,13 @@ class _VehiculDetaliuScreenState extends State<VehiculDetaliuScreen> {
   // care nu e niciodată eliminat din arbore la derulare) - nu în fiecare
   // card în parte: un card e un element din ListView și Flutter îi distruge
   // starea internă când iese suficient din ecran la scroll, resetând
-  // extinderea la închis quando revii la el. Mai multe categorii pot fi
-  // deschise simultan (independent, nu acordeon).
-  final Set<String> _categoriiExtinse = {};
+  // extinderea la închis quando revii la el. Acordeon: o singură categorie
+  // deschisă simultan - la deschiderea uneia noi, cea veche se închide.
+  String? _categorieExtinsa;
 
   void _comutaCategorie(String titlu) {
     setState(() {
-      if (!_categoriiExtinse.remove(titlu)) _categoriiExtinse.add(titlu);
+      _categorieExtinsa = _categorieExtinsa == titlu ? null : titlu;
     });
   }
 
@@ -280,7 +280,7 @@ class _VehiculDetaliuScreenState extends State<VehiculDetaliuScreen> {
                   key: const PageStorageKey('sectiune_itp'),
                   titlu: 'ITP',
                   icon: Icons.fact_check_outlined,
-                  extins: _categoriiExtinse.contains('ITP'),
+                  extins: _categorieExtinsa == 'ITP',
                   onToggle: () => _comutaCategorie('ITP'),
                   items: itpuri,
                   idItem: (i) => i.id,
@@ -304,7 +304,7 @@ class _VehiculDetaliuScreenState extends State<VehiculDetaliuScreen> {
                   key: const PageStorageKey('sectiune_rovinieta'),
                   titlu: 'Rovinietă',
                   icon: Icons.toll_outlined,
-                  extins: _categoriiExtinse.contains('Rovinietă'),
+                  extins: _categorieExtinsa == 'Rovinietă',
                   onToggle: () => _comutaCategorie('Rovinietă'),
                   items: rovinete,
                   idItem: (r) => r.id,
@@ -330,7 +330,7 @@ class _VehiculDetaliuScreenState extends State<VehiculDetaliuScreen> {
                   key: const PageStorageKey('sectiune_asigurari'),
                   titlu: 'Asigurări',
                   icon: Icons.shield_outlined,
-                  extins: _categoriiExtinse.contains('Asigurări'),
+                  extins: _categorieExtinsa == 'Asigurări',
                   onToggle: () => _comutaCategorie('Asigurări'),
                   items: asigurari,
                   idItem: (a) => a.id,
@@ -356,7 +356,7 @@ class _VehiculDetaliuScreenState extends State<VehiculDetaliuScreen> {
                   key: const PageStorageKey('sectiune_revizii'),
                   titlu: 'Revizii',
                   icon: Icons.build_outlined,
-                  extins: _categoriiExtinse.contains('Revizii'),
+                  extins: _categorieExtinsa == 'Revizii',
                   onToggle: () => _comutaCategorie('Revizii'),
                   items: revizii,
                   idItem: (r) => r.id,
@@ -441,7 +441,7 @@ Widget _randDate(BuildContext context, String eticheta, String valoare) {
 class _Sectiune<T> extends StatelessWidget {
   final String titlu;
   final IconData icon;
-  // Starea de extindere vine din ecranul părinte (vezi `_categoriiExtinse`
+  // Starea de extindere vine din ecranul părinte (vezi `_categorieExtinsa`
   // pe `_VehiculDetaliuScreenState`) - ținută aici local, un card expandat
   // care iese din ecran la derulare e distrus de Flutter (element din
   // ListView) și starea lui s-ar pierde la revenire.
