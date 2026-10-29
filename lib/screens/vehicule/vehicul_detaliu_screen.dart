@@ -542,10 +542,16 @@ class _Sectiune<T> extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
+        // Contur subțire, ton mai închis decât fundalul butonului.
+        border: Border.all(
+          color: Color.alphaBlend(
+            Colors.black.withValues(alpha: 0.18),
+            culori.surfaceContainerHighest,
+          ),
+          width: 1,
+        ),
         // Gradient ușor (mai deschis sus, ton normal jos) - simulează o
-        // suprafață curbată, ridicată. Umbră explicită, puternică, desenată
-        // manual (nu elevația Material, care pe unele device-uri iese prea
-        // subtilă ca să fie sesizabilă).
+        // suprafață curbată, ridicată. Umbră explicită, dar foarte mică.
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
@@ -559,14 +565,8 @@ class _Sectiune<T> extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.5),
-            offset: const Offset(0, 5),
-            blurRadius: 10,
-            spreadRadius: 1,
-          ),
-          BoxShadow(
-            color: Colors.white.withValues(alpha: 0.6),
-            offset: const Offset(0, -1),
+            color: Colors.black.withValues(alpha: 0.25),
+            offset: const Offset(0, 1.5),
             blurRadius: 2,
           ),
         ],
@@ -627,9 +627,14 @@ class _Sectiune<T> extends StatelessWidget {
               // fiecare înregistrare să fie vizibil distinctă de vecinele ei
               // și de antetul mai închis de deasupra.
               Container(
-                color: Color.alphaBlend(
-                  culoareCategorie.withValues(alpha: index.isEven ? 0.1 : 0.2),
-                  culori.surface,
+                // Amestec pornind de la alb pur, nu de la `culori.surface`
+                // (care are deja o tentă teal de la accentul aplicației) -
+                // altfel culoarea categoriei se pierdea în acel teal și
+                // toate cele 4 categorii ieșeau la fel.
+                color: Color.lerp(
+                  Colors.white,
+                  culoareCategorie,
+                  index.isEven ? 0.18 : 0.32,
                 ),
                 child: Column(
                   children: [
