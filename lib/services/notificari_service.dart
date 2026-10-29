@@ -4,7 +4,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/services.dart' show MethodChannel;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+
+const _canalDiagnostic = MethodChannel('evidenta_auto/diagnostic');
 
 /// Înregistrare + afișare notificări push native (APNs prin FCM).
 ///
@@ -63,8 +66,19 @@ class NotificariService {
         incercari++;
       }
       if (apnsToken == null) {
+        String? eroareNativa;
+        try {
+          eroareNativa = await _canalDiagnostic.invokeMethod<String>(
+            'ultimaEroareApns',
+          );
+        } catch (_) {
+          // Canalul nu există pe web/Android - ignorăm, mesajul de mai jos
+          // rămâne cel generic.
+        }
         throw Exception(
-          'Tokenul APNs nu a fost disponibil la timp. Încearcă din nou mai târziu.',
+          eroareNativa != null
+              ? 'Tokenul APNs a fost refuzat de Apple: $eroareNativa'
+              : 'Tokenul APNs nu a fost disponibil la timp. Încearcă din nou mai târziu.',
         );
       }
     }
