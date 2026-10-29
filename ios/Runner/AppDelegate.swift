@@ -30,9 +30,18 @@ import UIKit
       binaryMessenger: engineBridge.applicationRegistrar.messenger()
     )
     channel.setMethodCallHandler { call, result in
-      if call.method == "ultimaEroareApns" {
+      switch call.method {
+      case "ultimaEroareApns":
         result(AppDelegate.ultimaEroareApns)
-      } else {
+      case "inregistreazaRemote":
+        // Apel explicit, nu doar cel automat Firebase (swizzling) - pe
+        // tiparul "implicit engine" al AppDelegate-ului, înregistrarea
+        // automată nu pare să pornească deloc (nici succes, nici eșec).
+        DispatchQueue.main.async {
+          UIApplication.shared.registerForRemoteNotifications()
+        }
+        result(nil)
+      default:
         result(FlutterMethodNotImplemented)
       }
     }

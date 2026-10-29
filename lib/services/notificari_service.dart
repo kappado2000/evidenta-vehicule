@@ -58,6 +58,14 @@ class NotificariService {
     // pornire după o instalare proaspătă (TestFlight), înregistrarea la
     // APNs poate dura mai mult de 10s - de-aia fereastra e de 30s.
     if (!kIsWeb && Platform.isIOS) {
+      // Apel explicit - pe AppDelegate-ul de tip "implicit engine", apelul
+      // automat Firebase (swizzling) nu pare să pornească deloc înregistrarea
+      // la APNs (nici succes, nici eroare nativă nu se declanșează).
+      try {
+        await _canalDiagnostic.invokeMethod('inregistreazaRemote');
+      } catch (_) {
+        // Canalul nu există pe web/Android - ignorăm.
+      }
       var apnsToken = await _messaging.getAPNSToken();
       var incercari = 0;
       while (apnsToken == null && incercari < 30) {
