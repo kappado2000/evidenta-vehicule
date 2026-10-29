@@ -36,9 +36,12 @@ class ListaVehiculeScreen extends StatelessWidget {
               },
             ),
       // Padding jos - bara de navigare e plutitoare peste conținut
-      // (Scaffold.extendBody), altfel butonul rămâne ascuns sub ea.
+      // (Scaffold.extendBody): înălțimea ei (64) + marginea (10) + safe
+      // area de jos (home indicator), altfel butonul rămâne ascuns sub ea.
       floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 80),
+        padding: EdgeInsets.only(
+          bottom: 94 + MediaQuery.of(context).padding.bottom,
+        ),
         child: FloatingActionButton(
           backgroundColor: Theme.of(context).colorScheme.primary,
           foregroundColor: Theme.of(context).colorScheme.onPrimary,
