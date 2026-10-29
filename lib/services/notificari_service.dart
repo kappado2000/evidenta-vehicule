@@ -1,6 +1,9 @@
+import 'dart:io' show Platform;
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 /// Înregistrare + afișare notificări push native (APNs prin FCM).
@@ -44,6 +47,25 @@ class NotificariService {
     }
 
     await _initializeazaLocalNotif();
+
+    // Pe iOS, `getToken()` eșuează cu „apns-token-not-set" dacă e apelat
+    // înainte ca sistemul să fi livrat deja tokenul APNs către FCM - e o
+    // cursă reală pe dispozitiv fizic, nu o eroare de configurare. Așteptăm
+    // tokenul APNs, cu reîncercări, înainte de a cere tokenul FCM.
+    if (!kIsWeb && Platform.isIOS) {
+      var apnsToken = await _messaging.getAPNSToken();
+      var incercari = 0;
+      while (apnsToken == null && incercari < 10) {
+        await Future.delayed(const Duration(seconds: 1));
+        apnsToken = await _messaging.getAPNSToken();
+        incercari++;
+      }
+      if (apnsToken == null) {
+        throw Exception(
+          'Tokenul APNs nu a fost disponibil la timp. Încearcă din nou mai târziu.',
+        );
+      }
+    }
 
     final token = await _messaging.getToken();
     if (token == null) {

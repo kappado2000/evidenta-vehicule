@@ -66,6 +66,19 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  /// Reîncercare manuală din Setări, fără relogare/repornire - utilă dacă
+  /// prima înregistrare a eșuat pe tokenul APNs (vezi NotificariService).
+  Future<void> reincearcaInregistrareNotificari() async {
+    if (dataOwnerUid == null) return;
+    try {
+      await _notifService.activeazaSiInregistreaza(dataOwnerUid!);
+      eroareInregistrareNotificari = null;
+    } catch (e) {
+      eroareInregistrareNotificari = e.toString();
+    }
+    notifyListeners();
+  }
+
   Future<void> login(String email, String parola) =>
       _authService.login(email, parola);
 

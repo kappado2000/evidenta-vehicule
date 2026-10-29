@@ -68,8 +68,22 @@ class _SetariScreenState extends State<SetariScreen> {
                 color: Theme.of(context).colorScheme.errorContainer,
                 child: Padding(
                   padding: const EdgeInsets.all(12),
-                  child: Text(
-                    'Notificările push nu au putut fi activate: ${auth.eroareInregistrareNotificari}',
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Notificările push nu au putut fi activate: ${auth.eroareInregistrareNotificari}',
+                      ),
+                      const SizedBox(height: 8),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: () =>
+                              auth.reincearcaInregistrareNotificari(),
+                          child: const Text('Reîncearcă'),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
