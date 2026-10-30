@@ -272,7 +272,7 @@ class _VehiculFormScreenState extends State<VehiculFormScreen> {
                       color: Theme.of(context).colorScheme.outlineVariant,
                       width: 1.5,
                     ),
-                    color: Theme.of(context).colorScheme.primaryContainer,
+                    color: Theme.of(context).colorScheme.surfaceContainer,
                   ),
                   child: _fotoNoua != null
                       ? FutureBuilder<Uint8List>(
@@ -293,9 +293,7 @@ class _VehiculFormScreenState extends State<VehiculFormScreen> {
                       ? Icon(
                           Icons.add_a_photo_outlined,
                           size: 36,
-                          color: Theme.of(context)
-                              .colorScheme
-                              .onPrimaryContainer,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         )
                       : Image.network(
                           _fotoUrl,

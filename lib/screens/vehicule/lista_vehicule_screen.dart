@@ -101,12 +101,12 @@ class _CardVehicul extends StatelessWidget {
                   color: Theme.of(context).colorScheme.outlineVariant,
                   width: 1.5,
                 ),
-                color: Theme.of(context).colorScheme.primaryContainer,
+                color: Theme.of(context).colorScheme.surfaceContainer,
               ),
               child: vehicul.fotoUrl.isEmpty
                   ? Icon(
                       Icons.directions_car,
-                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     )
                   : Image.network(
                       vehicul.fotoUrl,
