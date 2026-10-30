@@ -363,6 +363,33 @@ class _SetariScreenState extends State<SetariScreen> {
                 ),
               ),
             ),
+            if (date.alerteInchise.isNotEmpty) ...[
+              const Divider(height: 40),
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.visibility_outlined),
+                  title: const Text('Alerte închise'),
+                  subtitle: Text(
+                    '${date.alerteInchise.length} alertă/alerte ascunse manual',
+                  ),
+                  trailing: TextButton(
+                    onPressed: () async {
+                      await date.deschideToateAlertele();
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Alertele închise au fost reafișate.',
+                            ),
+                          ),
+                        );
+                      }
+                    },
+                    child: const Text('Arată din nou'),
+                  ),
+                ),
+              ),
+            ],
             const Divider(height: 40),
             Card(
               child: ListTile(

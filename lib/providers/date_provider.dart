@@ -70,6 +70,12 @@ class DateProvider extends ChangeNotifier {
   List<Asigurare> asigurari = [];
   List<Revizie> revizii = [];
   SetariAlerte setari = const SetariAlerte();
+  // Chei (`Alerta.cheie`) ale alertelor închise manual de user - vezi
+  // `alerte` mai jos, unde sunt excluse din listă. Cheia include data de
+  // expirare curentă, deci o alertă închisă reapare automat dacă userul
+  // modifică ulterior acea dată (reînnoire), fără să rămână ascunsă pentru
+  // totdeauna pe acel tip+vehicul.
+  Set<String> alerteInchise = {};
   bool seIncarca = true;
 
   final List<StreamSubscription> _subs = [];
@@ -149,6 +155,42 @@ class DateProvider extends ChangeNotifier {
             notifyListeners();
           }),
     );
+    _subs.add(
+      FirebaseFirestore.instance
+          .collection('users')
+          .doc(dataOwnerUid)
+          .collection('alerteInchise')
+          .snapshots()
+          .listen((snap) {
+            alerteInchise = snap.docs.map((d) => d.id).toSet();
+            notifyListeners();
+          }),
+    );
+  }
+
+  /// Închide manual o alertă (nu șterge înregistrarea) - reapare automat
+  /// dacă data ei de expirare se schimbă ulterior, vezi `Alerta.cheie`.
+  Future<void> inchideAlerta(Alerta a) {
+    return FirebaseFirestore.instance
+        .collection('users')
+        .doc(dataOwnerUid)
+        .collection('alerteInchise')
+        .doc(a.cheie)
+        .set({'timestamp': FieldValue.serverTimestamp()});
+  }
+
+  /// Reafișează toate alertele închise manual (vezi `inchideAlerta`).
+  Future<void> deschideToateAlertele() async {
+    final colectie = FirebaseFirestore.instance
+        .collection('users')
+        .doc(dataOwnerUid)
+        .collection('alerteInchise');
+    final snap = await colectie.get();
+    final batch = FirebaseFirestore.instance.batch();
+    for (final doc in snap.docs) {
+      batch.delete(doc.reference);
+    }
+    await batch.commit();
   }
 
   Future<void> salveazaSetari(SetariAlerte noi) {
@@ -211,6 +253,8 @@ class DateProvider extends ChangeNotifier {
               ? 'ITP expirat de ${-dif} zile'
               : 'ITP expiră în $dif zile',
           zileRamase: dif,
+          itemId: itp.id,
+          dataExpirare: itp.dataExpirare,
         ),
       );
     }
@@ -233,6 +277,8 @@ class DateProvider extends ChangeNotifier {
               ? 'Rovinietă expirată de ${-dif} zile'
               : 'Rovinietă expiră în $dif zile',
           zileRamase: dif,
+          itemId: rov.id,
+          dataExpirare: rov.dataExpirare,
         ),
       );
     }
@@ -255,6 +301,8 @@ class DateProvider extends ChangeNotifier {
               ? '${asig.tip} expirată de ${-dif} zile'
               : '${asig.tip} expiră în $dif zile',
           zileRamase: dif,
+          itemId: asig.id,
+          dataExpirare: asig.dataExpirare,
         ),
       );
     }
@@ -279,10 +327,13 @@ class DateProvider extends ChangeNotifier {
               ? 'Revizie restantă de ${-dif} zile'
               : 'Revizie recomandată în $dif zile',
           zileRamase: dif,
+          itemId: rev.id,
+          dataExpirare: rev.proximData,
         ),
       );
     }
 
+    rezultat.removeWhere((a) => alerteInchise.contains(a.cheie));
     rezultat.sort((a, b) => a.zileRamase.compareTo(b.zileRamase));
     return rezultat;
   }
