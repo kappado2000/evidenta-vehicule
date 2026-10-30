@@ -562,19 +562,11 @@ class _Sectiune<T> extends StatelessWidget {
     final culori = Theme.of(context).colorScheme;
     // Text "gravat" în buton: umbră întunecată sus-stânga + reflex deschis
     // jos-dreapta, dă impresia de literă scobită în material, nu imprimată.
-    final stilGravat = TextStyle(
-      color: culori.onSurface.withValues(alpha: 0.85),
+    const stilGravat = TextStyle(
+      color: Colors.black87,
       shadows: [
-        Shadow(
-          offset: const Offset(-1, -1),
-          blurRadius: 1,
-          color: Colors.black.withValues(alpha: 0.45),
-        ),
-        Shadow(
-          offset: const Offset(1, 1),
-          blurRadius: 1,
-          color: Colors.white.withValues(alpha: 0.65),
-        ),
+        Shadow(offset: Offset(-1, -1), blurRadius: 1, color: Colors.black38),
+        Shadow(offset: Offset(1, 1), blurRadius: 1, color: Color(0xB3FFFFFF)),
       ],
     );
     return Container(
@@ -582,32 +574,22 @@ class _Sectiune<T> extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
-        // Contur subțire, ton mai închis decât fundalul butonului.
-        border: Border.all(
-          color: Color.alphaBlend(
-            Colors.black.withValues(alpha: 0.18),
-            culori.surfaceContainerHighest,
-          ),
-          width: 1,
-        ),
-        // Gradient ușor (mai deschis sus, ton normal jos) - simulează o
-        // suprafață curbată, ridicată. Umbră explicită, dar foarte mică.
-        gradient: LinearGradient(
+        // Contur închis (același galben, mult mai întunecat) - conturul
+        // capsulei din iconița MedRO.
+        border: Border.all(color: const Color(0xFF8A5A04), width: 1.5),
+        // Gradient galben (deschis sus, închis jos) identic cu degrade-ul
+        // capsulei din iconița MedRO (tool/icon_variante.py) - simulează
+        // aceeași suprafață curbată, lucioasă.
+        gradient: const LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [
-            Color.alphaBlend(
-              Colors.white.withValues(alpha: 0.5),
-              culori.surfaceContainerHighest,
-            ),
-            culori.surfaceContainerHighest,
-          ],
+          colors: [Color(0xFFFFE26E), Color(0xFFF7B518), Color(0xFFCD8006)],
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.25),
+            color: Colors.black.withValues(alpha: 0.3),
             offset: const Offset(0, 1.5),
-            blurRadius: 2,
+            blurRadius: 3,
           ),
         ],
       ),
@@ -619,7 +601,7 @@ class _Sectiune<T> extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Row(
                 children: [
-                  Icon(icon),
+                  Icon(icon, color: Colors.black87),
                   const SizedBox(width: 16),
                   Expanded(
                     child: Text.rich(
@@ -656,7 +638,10 @@ class _Sectiune<T> extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                   ],
-                  Icon(extins ? Icons.expand_less : Icons.expand_more),
+                  Icon(
+                    extins ? Icons.expand_less : Icons.expand_more,
+                    color: Colors.black87,
+                  ),
                 ],
               ),
             ),

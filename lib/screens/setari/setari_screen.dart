@@ -133,13 +133,21 @@ class _SetariScreenState extends State<SetariScreen> {
                   ),
                 ),
               ),
-            OutlinedButton.icon(
+            FilledButton.icon(
+              style: FilledButton.styleFrom(
+                // Galbenul capsulei din iconița MedRO (tool/icon_variante.py).
+                backgroundColor: const Color(0xFFF7B518),
+                foregroundColor: Colors.black,
+              ),
               onPressed: _seTrimiteTest ? null : _trimiteNotificareTest,
               icon: _seTrimiteTest
                   ? const SizedBox(
                       width: 16,
                       height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.black,
+                      ),
                     )
                   : const Icon(Icons.notifications_active_outlined),
               label: const Text('Trimite notificare de test'),
