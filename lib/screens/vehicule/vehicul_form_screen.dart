@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show Clipboard, ClipboardData;
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -60,7 +61,11 @@ class _VehiculFormScreenState extends State<VehiculFormScreen> {
     _modelCtrl = TextEditingController(text: v?.model ?? '');
     _anCtrl = TextEditingController(text: v?.an?.toString() ?? '');
     _kmCtrl = TextEditingController(text: v?.km?.toString() ?? '');
-    _vinCtrl = TextEditingController(text: v?.vin ?? '');
+    // Ascultător ca butoanele din dreptul câmpului VIN (copiere/scanare) să
+    // se actualizeze live în funcție de conținut, nu doar la deschiderea
+    // formularului.
+    _vinCtrl = TextEditingController(text: v?.vin ?? '')
+      ..addListener(() => setState(() {}));
     _culoareCtrl = TextEditingController(text: v?.culoare ?? '');
     _putereCtrl = TextEditingController(text: v?.putereCP?.toString() ?? '');
     _capacitateCtrl = TextEditingController(
@@ -160,6 +165,12 @@ class _VehiculFormScreenState extends State<VehiculFormScreen> {
     } finally {
       if (mounted) setState(() => _seScaneazaVin = false);
     }
+  }
+
+  void _copiazaVin() {
+    Clipboard.setData(ClipboardData(text: _vinCtrl.text.trim()));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(const SnackBar(content: Text('Serie de șasiu copiată.')));
   }
 
   Future<void> _salveaza() async {
@@ -359,20 +370,35 @@ class _VehiculFormScreenState extends State<VehiculFormScreen> {
               decoration: InputDecoration(
                 labelText: 'VIN (serie șasiu)',
                 border: const OutlineInputBorder(),
+                // Dacă seria e deja completată, butonul principal devine
+                // copierea ei (cel mai folosit pas la acel moment), iar
+                // scanarea cu camera rămâne disponibilă ca a doua opțiune,
+                // pentru rescanare.
                 suffixIcon: kIsWeb
                     ? null
-                    : IconButton(
-                        tooltip: 'Scanează VIN cu camera',
-                        icon: _seScaneazaVin
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : const Icon(Icons.camera_alt_outlined),
-                        onPressed: _seScaneazaVin ? null : _scaneazaVin,
+                    : Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (_vinCtrl.text.trim().isNotEmpty)
+                            IconButton(
+                              tooltip: 'Copiază seria',
+                              icon: const Icon(Icons.copy_outlined),
+                              onPressed: _copiazaVin,
+                            ),
+                          IconButton(
+                            tooltip: 'Scanează VIN cu camera',
+                            icon: _seScaneazaVin
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : const Icon(Icons.camera_alt_outlined),
+                            onPressed: _seScaneazaVin ? null : _scaneazaVin,
+                          ),
+                        ],
                       ),
               ),
             ),
