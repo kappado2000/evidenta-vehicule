@@ -4,8 +4,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/material.dart' show SnackBar, Text;
 import 'package:flutter/services.dart' show MethodChannel;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+
+import '../main.dart' show scaffoldMessengerKey;
 
 const _canalDiagnostic = MethodChannel('evidenta_auto/diagnostic');
 
@@ -122,26 +125,41 @@ class NotificariService {
       final titlu = mesaj.data['title'] ?? mesaj.notification?.title ?? '';
       final corp = mesaj.data['body'] ?? mesaj.notification?.body ?? '';
       if (titlu.isEmpty && corp.isEmpty) return;
-      await _localNotif.show(
-        DateTime.now().millisecondsSinceEpoch ~/ 1000,
-        titlu,
-        corp,
-        const NotificationDetails(
-          iOS: DarwinNotificationDetails(
-            presentAlert: true,
-            presentBanner: true,
-            presentBadge: true,
-            presentSound: true,
-            presentList: true,
-          ),
-          android: AndroidNotificationDetails(
-            'evidenta_auto_alerte',
-            'Alerte vehicule',
-            importance: Importance.high,
-            priority: Priority.high,
-          ),
-        ),
+
+      // Rezervă garantat vizibilă, independentă de API-ul nativ - dacă
+      // banner-ul nativ nu apare din motive specifice platformei, userul tot
+      // vede ceva, iar diferența (apare doar asta vs. nu apare nimic) ne
+      // spune dacă problema e la onMessage sau la flutter_local_notifications.
+      scaffoldMessengerKey.currentState?.showSnackBar(
+        SnackBar(content: Text('$titlu: $corp')),
       );
+
+      try {
+        await _localNotif.show(
+          DateTime.now().millisecondsSinceEpoch ~/ 1000,
+          titlu,
+          corp,
+          const NotificationDetails(
+            iOS: DarwinNotificationDetails(
+              presentAlert: true,
+              presentBanner: true,
+              presentBadge: true,
+              presentSound: true,
+              presentList: true,
+            ),
+            android: AndroidNotificationDetails(
+              'evidenta_auto_alerte',
+              'Alerte vehicule',
+              importance: Importance.high,
+              priority: Priority.high,
+            ),
+          ),
+        );
+      } catch (e) {
+        scaffoldMessengerKey.currentState?.showSnackBar(
+          SnackBar(content: Text('Eroare notificare locală: $e')),
+        );
+      }
     });
   }
 }

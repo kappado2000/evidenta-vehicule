@@ -8,6 +8,12 @@ import 'providers/date_provider.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/home_shell.dart';
 
+/// Expus global - NotificariService îl folosește ca rezervă garantat vizibilă
+/// când un mesaj sosește cu aplicația în prim-plan, independent de
+/// flutter_local_notifications (util și ca diagnostic, dacă bannerul nativ
+/// nu apare din motive specifice platformei).
+final scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
@@ -62,6 +68,7 @@ class _App extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Evidența Auto',
+      scaffoldMessengerKey: scaffoldMessengerKey,
       debugShowCheckedModeBanner: false,
       theme: _temaCu(Brightness.light),
       darkTheme: _temaCu(Brightness.dark),
