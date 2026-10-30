@@ -16,9 +16,10 @@ class _HomeShellState extends State<HomeShell> {
   int _index = 0;
   final _navigatorKey = GlobalKey<NavigatorState>();
 
+  // Vehicule primul (pagina implicită la pornire), Alerte al doilea.
   static const _ecrane = [
-    DashboardScreen(),
     ListaVehiculeScreen(),
+    DashboardScreen(),
     CosturiScreen(),
     SetariScreen(),
   ];
@@ -94,14 +95,14 @@ class _HomeShellState extends State<HomeShell> {
                 onDestinationSelected: _schimbaTab,
                 destinations: const [
                   NavigationDestination(
-                    icon: Icon(Icons.notifications_outlined),
-                    selectedIcon: Icon(Icons.notifications),
-                    label: 'Alerte',
-                  ),
-                  NavigationDestination(
                     icon: Icon(Icons.directions_car_outlined),
                     selectedIcon: Icon(Icons.directions_car),
                     label: 'Vehicule',
+                  ),
+                  NavigationDestination(
+                    icon: Icon(Icons.notifications_outlined),
+                    selectedIcon: Icon(Icons.notifications),
+                    label: 'Alerte',
                   ),
                   NavigationDestination(
                     icon: Icon(Icons.payments_outlined),

@@ -97,6 +97,9 @@ class _SetariScreenState extends State<SetariScreen> {
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
     final date = context.watch<DateProvider>();
+    final culori = Theme.of(context).colorScheme;
+    final culoarePrimara = culori.primary;
+    final culoareOnPrimara = culori.onPrimary;
     _initializeaza(date.setari);
 
     return Scaffold(
@@ -133,24 +136,77 @@ class _SetariScreenState extends State<SetariScreen> {
                   ),
                 ),
               ),
-            FilledButton.icon(
-              style: FilledButton.styleFrom(
-                // Galbenul capsulei din iconița MedRO (tool/icon_variante.py).
-                backgroundColor: const Color(0xFFF7B518),
-                foregroundColor: Colors.black,
-              ),
-              onPressed: _seTrimiteTest ? null : _trimiteNotificareTest,
-              icon: _seTrimiteTest
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.black,
+            // Același efect "capsulă" (gradient + contur închis + umbră) ca
+            // la antetele ITP/Rovinietă/Asigurări/Revizii din iconița MedRO -
+            // un FilledButton obișnuit nu poate avea gradient, de-aia e
+            // construit manual peste InkWell. Align ca să nu se întindă pe
+            // toată lățimea (Container într-un ListView altfel se întinde).
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Container(
+                clipBehavior: Clip.antiAlias,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(
+                    color: const Color(0xFF8A5A04),
+                    width: 1.5,
+                  ),
+                  gradient: const LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Color(0xFFFFE26E),
+                      Color(0xFFF7B518),
+                      Color(0xFFCD8006),
+                    ],
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.3),
+                      offset: const Offset(0, 1.5),
+                      blurRadius: 3,
+                    ),
+                  ],
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: _seTrimiteTest ? null : _trimiteNotificareTest,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
                       ),
-                    )
-                  : const Icon(Icons.notifications_active_outlined),
-              label: const Text('Trimite notificare de test'),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _seTrimiteTest
+                              ? const SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.black87,
+                                  ),
+                                )
+                              : const Icon(
+                                  Icons.notifications_active_outlined,
+                                  color: Colors.black87,
+                                ),
+                          const SizedBox(width: 8),
+                          const Text(
+                            'Trimite notificare de test',
+                            style: TextStyle(
+                              color: Colors.black87,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             ),
             const Divider(height: 40),
             Text(
@@ -238,13 +294,74 @@ class _SetariScreenState extends State<SetariScreen> {
               'verificare manuală.',
             ),
             const SizedBox(height: 8),
-            OutlinedButton.icon(
-              onPressed: () => launchUrl(
-                Uri.parse('https://www.etoll.ro'),
-                mode: LaunchMode.externalApplication,
+            Align(
+              alignment: Alignment.centerLeft,
+              // Același efect "capsulă" (gradient + contur închis + umbră) ca
+              // la celelalte butoane, dar pe culoarea temei (teal), nu galben.
+              child: Container(
+                clipBehavior: Clip.antiAlias,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(
+                    color: Color.alphaBlend(
+                      Colors.black.withValues(alpha: 0.35),
+                      culoarePrimara,
+                    ),
+                    width: 1.5,
+                  ),
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Color.alphaBlend(
+                        Colors.white.withValues(alpha: 0.45),
+                        culoarePrimara,
+                      ),
+                      culoarePrimara,
+                      Color.alphaBlend(
+                        Colors.black.withValues(alpha: 0.25),
+                        culoarePrimara,
+                      ),
+                    ],
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.3),
+                      offset: const Offset(0, 1.5),
+                      blurRadius: 3,
+                    ),
+                  ],
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () => launchUrl(
+                      Uri.parse('https://www.etoll.ro'),
+                      mode: LaunchMode.externalApplication,
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.open_in_new, color: culoareOnPrimara),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Deschide contul etoll.ro',
+                            style: TextStyle(
+                              color: culoareOnPrimara,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
               ),
-              icon: const Icon(Icons.open_in_new),
-              label: const Text('Deschide contul etoll.ro'),
             ),
             const Divider(height: 40),
             Card(
