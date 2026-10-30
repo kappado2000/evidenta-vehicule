@@ -155,12 +155,13 @@ class _VehiculDetaliuScreenState extends State<VehiculDetaliuScreen> {
             child: ListView(
               // Padding jos generos - bara de navigare e plutitoare (peste
               // conținut, Scaffold.extendBody), altfel categoria Revizii
-              // (ultima din listă) rămâne ascunsă sub ea.
-              padding: const EdgeInsets.fromLTRB(12, 12, 12, 100),
+              // (ultima din listă) rămâne ascunsă sub ea. Sus - strâns, ca
+              // să rămână mai mult loc vizibil pentru cele 4 categorii.
+              padding: const EdgeInsets.fromLTRB(12, 6, 12, 100),
               children: [
                 Card(
                   child: Padding(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -321,7 +322,7 @@ class _VehiculDetaliuScreenState extends State<VehiculDetaliuScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 _Sectiune<Itp>(
                   key: const PageStorageKey('sectiune_itp'),
                   titlu: 'ITP',
