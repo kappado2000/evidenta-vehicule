@@ -91,31 +91,46 @@ class _CardVehicul extends StatelessWidget {
         leading: Stack(
           clipBehavior: Clip.none,
           children: [
-            Container(
-              width: 80,
-              height: 80,
-              clipBehavior: Clip.antiAlias,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: Theme.of(context).colorScheme.outlineVariant,
-                  width: 1.5,
-                ),
-                color: Theme.of(context).colorScheme.surfaceContainer,
-              ),
-              child: vehicul.fotoUrl.isEmpty
-                  ? Icon(
+            vehicul.fotoUrl.isEmpty
+                ? Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: Theme.of(context).colorScheme.outlineVariant,
+                        width: 1.5,
+                      ),
+                      color: Theme.of(context).colorScheme.surfaceContainer,
+                    ),
+                    child: Icon(
                       Icons.directions_car,
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    )
-                  : Image.network(
+                    ),
+                  )
+                : Container(
+                    // Fără lățime/înălțime fixă - conturul se lipește de
+                    // marginea reală a pozei, nu de un cadru pătrat cu benzi
+                    // goale pe laturi (vehiculul întreg trebuie să încapă,
+                    // contain, nu cover).
+                    constraints: const BoxConstraints(
+                      maxWidth: 80,
+                      maxHeight: 80,
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: Theme.of(context).colorScheme.outlineVariant,
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Image.network(
                       vehicul.fotoUrl,
-                      // Vehiculul întreg trebuie să încapă în cadru, nu
-                      // decupat - contain, nu cover.
                       fit: BoxFit.contain,
                       webHtmlElementStrategy: WebHtmlElementStrategy.fallback,
                     ),
-            ),
+                  ),
             // Semnalare ITP/Rovinietă/Asigurare/Revizie expirată sau
             // aproape de expirare - roșu dacă ceva e deja expirat,
             // portocaliu dacă e doar în pragul de alertă.

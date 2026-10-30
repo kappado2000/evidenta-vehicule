@@ -259,49 +259,68 @@ class _VehiculFormScreenState extends State<VehiculFormScreen> {
             Center(
               child: GestureDetector(
                 onTap: _alegeFoto,
-                // Pătrat cu colțuri teșite (stil iconiță iOS) - la fel ca
-                // miniatura din lista de vehicule, dar mai mare, ca vehiculul
-                // să încapă bine în cadru.
-                child: Container(
-                  width: 160,
-                  height: 160,
-                  clipBehavior: Clip.antiAlias,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(32),
-                    border: Border.all(
-                      color: Theme.of(context).colorScheme.outlineVariant,
-                      width: 1.5,
-                    ),
-                    color: Theme.of(context).colorScheme.surfaceContainer,
-                  ),
-                  child: _fotoNoua != null
-                      ? FutureBuilder<Uint8List>(
-                          future: _fotoNoua!.readAsBytes(),
-                          builder: (context, snap) {
-                            if (!snap.hasData) {
-                              return const Center(
-                                child: CircularProgressIndicator(),
-                              );
-                            }
-                            return Image.memory(
-                              snap.data!,
-                              fit: BoxFit.contain,
-                            );
-                          },
-                        )
-                      : _fotoUrl.isEmpty
-                      ? Icon(
+                // Fără poză - pătrat fix cu iconiță (stil iconiță iOS). Cu
+                // poză - fără lățime/înălțime fixă, conturul se lipește de
+                // marginea reală a pozei, nu de un cadru pătrat cu benzi
+                // goale pe laturi (vehiculul întreg trebuie să încapă,
+                // contain, nu cover).
+                child: (_fotoNoua == null && _fotoUrl.isEmpty)
+                    ? Container(
+                        width: 160,
+                        height: 160,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(32),
+                          border: Border.all(
+                            color: Theme.of(context).colorScheme.outlineVariant,
+                            width: 1.5,
+                          ),
+                          color: Theme.of(context).colorScheme.surfaceContainer,
+                        ),
+                        child: Icon(
                           Icons.add_a_photo_outlined,
                           size: 36,
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        )
-                      : Image.network(
-                          _fotoUrl,
-                          fit: BoxFit.contain,
-                          webHtmlElementStrategy:
-                              WebHtmlElementStrategy.fallback,
                         ),
-                ),
+                      )
+                    : Container(
+                        constraints: const BoxConstraints(
+                          maxWidth: 160,
+                          maxHeight: 160,
+                        ),
+                        clipBehavior: Clip.antiAlias,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(32),
+                          border: Border.all(
+                            color: Theme.of(context).colorScheme.outlineVariant,
+                            width: 1.5,
+                          ),
+                        ),
+                        child: _fotoNoua != null
+                            ? FutureBuilder<Uint8List>(
+                                future: _fotoNoua!.readAsBytes(),
+                                builder: (context, snap) {
+                                  if (!snap.hasData) {
+                                    return const SizedBox(
+                                      width: 160,
+                                      height: 160,
+                                      child: Center(
+                                        child: CircularProgressIndicator(),
+                                      ),
+                                    );
+                                  }
+                                  return Image.memory(
+                                    snap.data!,
+                                    fit: BoxFit.contain,
+                                  );
+                                },
+                              )
+                            : Image.network(
+                                _fotoUrl,
+                                fit: BoxFit.contain,
+                                webHtmlElementStrategy:
+                                    WebHtmlElementStrategy.fallback,
+                              ),
+                      ),
               ),
             ),
             const SizedBox(height: 24),
