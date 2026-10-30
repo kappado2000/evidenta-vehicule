@@ -3,9 +3,7 @@ import UIKit
 import UserNotifications
 
 @main
-@objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate,
-  UNUserNotificationCenterDelegate
-{
+@objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
   static var ultimaEroareApns: String?
 
   override func application(
