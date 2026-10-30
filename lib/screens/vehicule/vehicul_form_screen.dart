@@ -102,8 +102,7 @@ class _VehiculFormScreenState extends State<VehiculFormScreen> {
     if (fisier == null) return;
 
     // Decupare manuală: userul alege singur cadrul fotografiei, fără
-    // raport de aspect impus — FotoUrl se afișa altfel decupat automat
-    // de BoxFit.cover, fără niciun control din partea userului.
+    // raport de aspect impus.
     if (!mounted) return;
     final decupat = await ImageCropper().cropImage(
       sourcePath: fisier.path,
@@ -252,42 +251,59 @@ class _VehiculFormScreenState extends State<VehiculFormScreen> {
       body: Form(
         key: _formKey,
         child: ListView(
-          padding: const EdgeInsets.all(16),
+          // Padding jos generos - bara de navigare e plutitoare (peste
+          // conținut, Scaffold.extendBody), altfel ultimul câmp (Observații)
+          // rămâne ascuns sub ea.
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 130),
           children: [
             Center(
               child: GestureDetector(
                 onTap: _alegeFoto,
-                child: _fotoNoua != null
-                    ? FutureBuilder<Uint8List>(
-                        future: _fotoNoua!.readAsBytes(),
-                        builder: (context, snap) {
-                          if (!snap.hasData) {
-                            return const CircleAvatar(
-                              radius: 48,
-                              child: CircularProgressIndicator(),
+                // Pătrat cu colțuri teșite (stil iconiță iOS) - la fel ca
+                // miniatura din lista de vehicule, dar mai mare, ca vehiculul
+                // să încapă bine în cadru.
+                child: Container(
+                  width: 160,
+                  height: 160,
+                  clipBehavior: Clip.antiAlias,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(32),
+                    border: Border.all(
+                      color: Theme.of(context).colorScheme.outlineVariant,
+                      width: 1.5,
+                    ),
+                    color: Theme.of(context).colorScheme.primaryContainer,
+                  ),
+                  child: _fotoNoua != null
+                      ? FutureBuilder<Uint8List>(
+                          future: _fotoNoua!.readAsBytes(),
+                          builder: (context, snap) {
+                            if (!snap.hasData) {
+                              return const Center(
+                                child: CircularProgressIndicator(),
+                              );
+                            }
+                            return Image.memory(
+                              snap.data!,
+                              fit: BoxFit.contain,
                             );
-                          }
-                          return CircleAvatar(
-                            radius: 48,
-                            backgroundImage: MemoryImage(snap.data!),
-                          );
-                        },
-                      )
-                    : CircleAvatar(
-                        radius: 48,
-                        child: _fotoUrl.isEmpty
-                            ? const Icon(Icons.add_a_photo_outlined, size: 32)
-                            : ClipOval(
-                                child: Image.network(
-                                  _fotoUrl,
-                                  width: 96,
-                                  height: 96,
-                                  fit: BoxFit.cover,
-                                  webHtmlElementStrategy:
-                                      WebHtmlElementStrategy.fallback,
-                                ),
-                              ),
-                      ),
+                          },
+                        )
+                      : _fotoUrl.isEmpty
+                      ? Icon(
+                          Icons.add_a_photo_outlined,
+                          size: 36,
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onPrimaryContainer,
+                        )
+                      : Image.network(
+                          _fotoUrl,
+                          fit: BoxFit.contain,
+                          webHtmlElementStrategy:
+                              WebHtmlElementStrategy.fallback,
+                        ),
+                ),
               ),
             ),
             const SizedBox(height: 24),
