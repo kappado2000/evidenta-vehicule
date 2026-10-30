@@ -283,10 +283,7 @@ class _VehiculFormScreenState extends State<VehiculFormScreen> {
                                 child: CircularProgressIndicator(),
                               );
                             }
-                            return Image.memory(
-                              snap.data!,
-                              fit: BoxFit.contain,
-                            );
+                            return Image.memory(snap.data!, fit: BoxFit.cover);
                           },
                         )
                       : _fotoUrl.isEmpty
@@ -297,7 +294,11 @@ class _VehiculFormScreenState extends State<VehiculFormScreen> {
                         )
                       : Image.network(
                           _fotoUrl,
-                          fit: BoxFit.contain,
+                          // Pătratul e de dimensiune fixă - poza umple tot
+                          // cadrul (cover), nu lasă benzi goale. Ce se
+                          // "decupează" e doar colțurile teșite ale
+                          // pătratului (borderRadius-ul de mai sus).
+                          fit: BoxFit.cover,
                           webHtmlElementStrategy:
                               WebHtmlElementStrategy.fallback,
                         ),

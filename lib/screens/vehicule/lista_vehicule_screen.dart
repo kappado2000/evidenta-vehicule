@@ -110,9 +110,12 @@ class _CardVehicul extends StatelessWidget {
                     )
                   : Image.network(
                       vehicul.fotoUrl,
-                      // Vehiculul întreg trebuie să încapă în cadru, nu
-                      // decupat - contain, nu cover.
-                      fit: BoxFit.contain,
+                      // Pătratul e de dimensiune fixă, identică la toate
+                      // vehiculele - poza umple tot cadrul (cover), nu lasă
+                      // benzi goale. Ce se "decupează" e doar colțurile
+                      // teșite ale pătratului (borderRadius-ul de mai sus),
+                      // nu conținutul fotografiei.
+                      fit: BoxFit.cover,
                       webHtmlElementStrategy: WebHtmlElementStrategy.fallback,
                     ),
             ),
