@@ -679,9 +679,13 @@ class _Sectiune<T> extends StatelessWidget {
                     visualDensity: const VisualDensity(vertical: -4),
                     leading: CircleAvatar(
                       radius: 11,
+                      backgroundColor: culori.primary,
                       child: Text(
                         '${index + 1}',
-                        style: const TextStyle(fontSize: 11),
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                     title: Text(
