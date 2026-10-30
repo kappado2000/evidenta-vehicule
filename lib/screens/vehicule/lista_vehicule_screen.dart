@@ -92,11 +92,11 @@ class _CardVehicul extends StatelessWidget {
           clipBehavior: Clip.none,
           children: [
             Container(
-              width: 68,
-              height: 68,
+              width: 80,
+              height: 80,
               clipBehavior: Clip.antiAlias,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(18),
+                borderRadius: BorderRadius.circular(20),
                 border: Border.all(
                   color: Theme.of(context).colorScheme.outlineVariant,
                   width: 1.5,
