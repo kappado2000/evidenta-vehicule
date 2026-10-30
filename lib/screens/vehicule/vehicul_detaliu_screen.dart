@@ -647,6 +647,7 @@ class _Sectiune<T> extends StatelessWidget {
             ),
           ),
           if (extins) ...[
+            const SizedBox(height: 4),
             for (final (index, item) in items.indexed)
               // O singură culoare (albastru) pentru toate cele 4 categorii
               // când sunt deschise, nu mai e diferită per categorie - plus
@@ -700,8 +701,9 @@ class _Sectiune<T> extends StatelessWidget {
                 ),
               ),
             Container(
-              color: culori.surface,
-              padding: const EdgeInsets.all(8),
+              // Fără fundal propriu - galbenul cardului rămâne vizibil în
+              // jurul listei și al butonului, nu doar pe antet.
+              padding: const EdgeInsets.fromLTRB(8, 4, 8, 8),
               width: double.infinity,
               child: FilledButton.icon(
                 style: FilledButton.styleFrom(
