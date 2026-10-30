@@ -1,15 +1,32 @@
 import Flutter
 import UIKit
+import UserNotifications
 
 @main
-@objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
+@objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate,
+  UNUserNotificationCenterDelegate
+{
   static var ultimaEroareApns: String?
 
   override func application(
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
+    // Preluăm explicit controlul asupra afișării notificărilor cât
+    // aplicația e în prim-plan - pe tiparul "implicit engine", lanțul automat
+    // Firebase -> FlutterSceneDelegate nu pare să funcționeze (identic cu
+    // problema de la înregistrarea automată APNs, rezolvată tot manual mai
+    // jos), deci bannerul nu apărea deloc cu aplicația deschisă.
+    UNUserNotificationCenter.current().delegate = self
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+  }
+
+  override func userNotificationCenter(
+    _ center: UNUserNotificationCenter,
+    willPresent notification: UNNotification,
+    withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
+  ) {
+    completionHandler([.banner, .sound, .badge, .list])
   }
 
   // Captează eroarea nativă reală de înregistrare APNs - din Dart,
