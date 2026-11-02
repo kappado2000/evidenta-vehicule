@@ -125,7 +125,7 @@ void main() {
           ),
         ],
       );
-      expect(a.single.mesaj, 'Revizie restantă de 1 zile');
+      expect(a.single.mesaj, 'Revizie restantă de 1 zi');
       expect(a.single.dataExpirare, peste(-1));
     });
 

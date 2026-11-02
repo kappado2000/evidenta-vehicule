@@ -295,8 +295,8 @@ List<Alerta> calculeazaAlerte({
         numarVehicul: v?.nr ?? '',
         titlu: 'ITP${v != null ? ' - ${v.nr}' : ''}',
         mesaj: dif < 0
-            ? 'ITP expirat de ${-dif} zile'
-            : 'ITP expiră în $dif zile',
+            ? 'ITP expirat de ${zileText(-dif)}'
+            : 'ITP expiră în ${zileText(dif)}',
         zileRamase: dif,
         itemId: itp.id,
         dataExpirare: itp.dataExpirare,
@@ -319,8 +319,8 @@ List<Alerta> calculeazaAlerte({
         numarVehicul: v?.nr ?? '',
         titlu: 'Rovinietă${v != null ? ' - ${v.nr}' : ''}',
         mesaj: dif < 0
-            ? 'Rovinietă expirată de ${-dif} zile'
-            : 'Rovinietă expiră în $dif zile',
+            ? 'Rovinietă expirată de ${zileText(-dif)}'
+            : 'Rovinietă expiră în ${zileText(dif)}',
         zileRamase: dif,
         itemId: rov.id,
         dataExpirare: rov.dataExpirare,
@@ -343,8 +343,8 @@ List<Alerta> calculeazaAlerte({
         numarVehicul: v?.nr ?? '',
         titlu: '${asig.tip}${v != null ? ' - ${v.nr}' : ''}',
         mesaj: dif < 0
-            ? '${asig.tip} expirată de ${-dif} zile'
-            : '${asig.tip} expiră în $dif zile',
+            ? '${asig.tip} expirată de ${zileText(-dif)}'
+            : '${asig.tip} expiră în ${zileText(dif)}',
         zileRamase: dif,
         itemId: asig.id,
         dataExpirare: asig.dataExpirare,
@@ -369,8 +369,8 @@ List<Alerta> calculeazaAlerte({
         numarVehicul: v?.nr ?? '',
         titlu: 'Revizie${v != null ? ' - ${v.nr}' : ''}',
         mesaj: dif < 0
-            ? 'Revizie restantă de ${-dif} zile'
-            : 'Revizie recomandată în $dif zile',
+            ? 'Revizie restantă de ${zileText(-dif)}'
+            : 'Revizie recomandată în ${zileText(dif)}',
         zileRamase: dif,
         itemId: rev.id,
         dataExpirare: rev.proximData,

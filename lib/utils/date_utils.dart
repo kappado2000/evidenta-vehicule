@@ -46,3 +46,11 @@ String? adaugaAniIso(String dataIso, int ani) {
   if (data == null) return null;
   return _iso(DateTime(data.year + ani, data.month, data.day));
 }
+
+/// „1 zi”, „5 zile”, „20 de zile”: în română, numerele terminate în 00 sau
+/// 20–99 cer „de” în față.
+String zileText(int n) {
+  if (n == 1) return '1 zi';
+  final ultimele = n % 100;
+  return ultimele == 0 && n != 0 || ultimele >= 20 ? '$n de zile' : '$n zile';
+}

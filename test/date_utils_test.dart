@@ -35,4 +35,16 @@ void main() {
       expect(formateazaDataRo('nu-e-data'), 'nu-e-data');
     });
   });
+
+  test('zileText pune forma corectă în română', () {
+    expect(zileText(0), '0 zile');
+    expect(zileText(1), '1 zi');
+    expect(zileText(2), '2 zile');
+    expect(zileText(19), '19 zile');
+    expect(zileText(20), '20 de zile');
+    expect(zileText(101), '101 zile');
+    expect(zileText(120), '120 de zile');
+    expect(zileText(200), '200 de zile');
+    expect(zileText(365), '365 de zile');
+  });
 }
