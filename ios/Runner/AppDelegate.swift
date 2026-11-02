@@ -56,6 +56,14 @@ import UserNotifications
           UIApplication.shared.registerForRemoteNotifications()
         }
         result(nil)
+      case "reseteazaBadge":
+        // Cifra de pe iconiță vine din `aps.badge`, aplicată de iOS direct,
+        // în afara controlului Flutter - nimic nu o reseta altfel, rămânea
+        // agățată pe iconiță la nesfârșit.
+        DispatchQueue.main.async {
+          UIApplication.shared.applicationIconBadgeNumber = 0
+        }
+        result(nil)
       default:
         result(FlutterMethodNotImplemented)
       }

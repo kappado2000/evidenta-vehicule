@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -144,10 +145,12 @@ class _VehiculDetaliuScreenState extends State<VehiculDetaliuScreen> {
                   ),
                   color: Theme.of(context).colorScheme.surfaceContainer,
                 ),
-                child: Image.network(
-                  vehicul.fotoUrl,
+                child: CachedNetworkImage(
+                  imageUrl: vehicul.fotoUrl,
                   fit: BoxFit.contain,
-                  webHtmlElementStrategy: WebHtmlElementStrategy.fallback,
+                  fadeInDuration: Duration.zero,
+                  placeholder: (_, _) =>
+                      const Center(child: CircularProgressIndicator()),
                 ),
               ),
             ),
@@ -452,10 +455,13 @@ class _FotoIntreagaScreen extends StatelessWidget {
         child: InteractiveViewer(
           minScale: 0.5,
           maxScale: 4,
-          child: Image.network(
-            url,
+          child: CachedNetworkImage(
+            imageUrl: url,
             fit: BoxFit.contain,
-            webHtmlElementStrategy: WebHtmlElementStrategy.fallback,
+            fadeInDuration: Duration.zero,
+            placeholder: (_, _) => const Center(
+              child: CircularProgressIndicator(color: Colors.white),
+            ),
           ),
         ),
       ),

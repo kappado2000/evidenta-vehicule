@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show Clipboard, ClipboardData;
@@ -292,15 +293,17 @@ class _VehiculFormScreenState extends State<VehiculFormScreen> {
                           size: 36,
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         )
-                      : Image.network(
-                          _fotoUrl,
+                      : CachedNetworkImage(
+                          imageUrl: _fotoUrl,
                           // Pătratul e de dimensiune fixă - poza umple tot
                           // cadrul (cover), nu lasă benzi goale. Ce se
                           // "decupează" e doar colțurile teșite ale
                           // pătratului (borderRadius-ul de mai sus).
                           fit: BoxFit.cover,
-                          webHtmlElementStrategy:
-                              WebHtmlElementStrategy.fallback,
+                          fadeInDuration: Duration.zero,
+                          placeholder: (_, _) => const Center(
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
                         ),
                 ),
               ),

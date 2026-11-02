@@ -117,6 +117,24 @@ class NotificariService {
         }, SetOptions(merge: true));
   }
 
+  /// Resetează cifra roșie de pe iconița aplicației (badge-ul iOS).
+  ///
+  /// Serverul trimite `aps.badge` odată cu notificarea zilnică (câte alerte
+  /// erau active la trimitere) - iOS aplică acea cifră direct pe iconiță,
+  /// în afara controlului Flutter, chiar dacă aplicația e închisă. Nimic nu
+  /// o reseta automat ulterior, deci rămânea agățată pe iconiță la
+  /// nesfârșit, chiar după ce userul a citit alertele în aplicație. Apelat
+  /// la deschiderea/revenirea în prim-plan a aplicației și la vizitarea
+  /// tabului Alerte.
+  Future<void> reseteazaBadge() async {
+    if (kIsWeb || !Platform.isIOS) return;
+    try {
+      await _canalDiagnostic.invokeMethod('reseteazaBadge');
+    } catch (_) {
+      // Canalul nu există pe web/Android - ignorăm.
+    }
+  }
+
   /// Afișează un mesaj primit cât aplicația e în prim-plan (iOS nu arată
   /// automat banner-ul de sistem pentru push-urile primite în foreground).
   Future<void> configureazaAfisarePrimPlan() async {

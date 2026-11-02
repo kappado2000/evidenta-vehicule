@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../services/notificari_service.dart';
 import 'costuri/costuri_screen.dart';
 import 'dashboard/dashboard_screen.dart';
 import 'setari/setari_screen.dart';
@@ -12,9 +13,10 @@ class HomeShell extends StatefulWidget {
   State<HomeShell> createState() => _HomeShellState();
 }
 
-class _HomeShellState extends State<HomeShell> {
+class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
   int _index = 0;
   final _navigatorKey = GlobalKey<NavigatorState>();
+  final _notificariService = NotificariService();
 
   // Vehicule primul (pagina implicită la pornire), Alerte al doilea.
   static const _ecrane = [
@@ -24,6 +26,29 @@ class _HomeShellState extends State<HomeShell> {
     SetariScreen(),
   ];
 
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    // La deschiderea aplicației, resetăm cifra de pe iconiță - rămânea
+    // agățată la nesfârșit, fiindcă nimic altceva n-o reseta (vezi
+    // `reseteazaBadge`).
+    _notificariService.reseteazaBadge();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _notificariService.reseteazaBadge();
+    }
+  }
+
   // Dacă userul e într-un ecran deschis cu Navigator.push (detaliu vehicul,
   // formular etc.), revine întâi la ecranul de bază al tabului curent -
   // altfel schimbarea tabului ar rămâne ascunsă sub ecranul deschis, fiindcă
@@ -32,6 +57,9 @@ class _HomeShellState extends State<HomeShell> {
   void _schimbaTab(int i) {
     _navigatorKey.currentState?.popUntil((r) => r.isFirst);
     setState(() => _index = i);
+    // Alerte (index 1) - vizitarea tabului = "citite", cifra de pe iconiță
+    // dispare.
+    if (i == 1) _notificariService.reseteazaBadge();
   }
 
   @override

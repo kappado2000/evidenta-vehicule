@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -108,15 +109,29 @@ class _CardVehicul extends StatelessWidget {
                       Icons.directions_car,
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     )
-                  : Image.network(
-                      vehicul.fotoUrl,
+                  : CachedNetworkImage(
+                      imageUrl: vehicul.fotoUrl,
                       // Pătratul e de dimensiune fixă, identică la toate
                       // vehiculele - poza umple tot cadrul (cover), nu lasă
                       // benzi goale. Ce se "decupează" e doar colțurile
                       // teșite ale pătratului (borderRadius-ul de mai sus),
                       // nu conținutul fotografiei.
                       fit: BoxFit.cover,
-                      webHtmlElementStrategy: WebHtmlElementStrategy.fallback,
+                      // Poza se cache-uiește pe disc - fără asta, lista se
+                      // reîncarcă de pe rețea la fiecare deschidere a
+                      // paginii, vizibil lent (semnalat explicit de user).
+                      fadeInDuration: Duration.zero,
+                      placeholder: (_, _) => const Center(
+                        child: SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      ),
+                      errorWidget: (context, _, _) => Icon(
+                        Icons.directions_car,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                     ),
             ),
             // Semnalare ITP/Rovinietă/Asigurare/Revizie expirată sau
