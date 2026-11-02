@@ -209,163 +209,23 @@ class DateProvider extends ChangeNotifier {
     return null;
   }
 
-  /// Cea mai recentă înregistrare per vehicul (asigurările se țin separat
-  /// per `tip`, ca RCA și CASCO să alerteze independent — la fel ca server).
-  List<T> _ultimeleInregistrari<T>(
-    List<T> toate,
-    String Function(T) cheie,
-    DateTime? Function(T) timestamp,
-  ) {
-    final ultimele = <String, T>{};
-    for (final item in toate) {
-      final existent = ultimele[cheie(item)];
-      if (existent == null) {
-        ultimele[cheie(item)] = item;
-        continue;
-      }
-      final tsNou = timestamp(item);
-      final tsExistent = timestamp(existent);
-      if (tsNou != null && (tsExistent == null || tsNou.isAfter(tsExistent))) {
-        ultimele[cheie(item)] = item;
-      }
-    }
-    return ultimele.values.toList();
-  }
+  List<Alerta> get alerte => calculeazaAlerte(
+    vehicule: vehicule,
+    itpuri: itpuri,
+    rovinete: rovinete,
+    asigurari: asigurari,
+    revizii: revizii,
+    setari: setari,
+    alerteInchise: alerteInchise,
+  );
 
-  List<Alerta> get alerte {
-    final rezultat = <Alerta>[];
-
-    for (final itp in _ultimeleInregistrari(
-      itpuri,
-      (i) => i.vehiculId,
-      (i) => i.timestamp,
-    )) {
-      final dif = zilePanaLa(itp.dataExpirare);
-      if (dif == null || dif > setari.alertaITP || dif < -365) continue;
-      final v = vehiculDupaId(itp.vehiculId);
-      rezultat.add(
-        Alerta(
-          tip: TipAlerta.itp,
-          vehiculId: itp.vehiculId,
-          numarVehicul: v?.nr ?? '',
-          titlu: 'ITP${v != null ? ' - ${v.nr}' : ''}',
-          mesaj: dif < 0
-              ? 'ITP expirat de ${-dif} zile'
-              : 'ITP expiră în $dif zile',
-          zileRamase: dif,
-          itemId: itp.id,
-          dataExpirare: itp.dataExpirare,
-        ),
-      );
-    }
-
-    for (final rov in _ultimeleInregistrari(
-      rovinete,
-      (r) => r.vehiculId,
-      (r) => r.timestamp,
-    )) {
-      final dif = zilePanaLa(rov.dataExpirare);
-      if (dif == null || dif > setari.alertaRovinieta || dif < -365) continue;
-      final v = vehiculDupaId(rov.vehiculId);
-      rezultat.add(
-        Alerta(
-          tip: TipAlerta.rovinieta,
-          vehiculId: rov.vehiculId,
-          numarVehicul: v?.nr ?? '',
-          titlu: 'Rovinietă${v != null ? ' - ${v.nr}' : ''}',
-          mesaj: dif < 0
-              ? 'Rovinietă expirată de ${-dif} zile'
-              : 'Rovinietă expiră în $dif zile',
-          zileRamase: dif,
-          itemId: rov.id,
-          dataExpirare: rov.dataExpirare,
-        ),
-      );
-    }
-
-    for (final asig in _ultimeleInregistrari(
-      asigurari,
-      (a) => '${a.vehiculId}_${a.tip}',
-      (a) => a.timestamp,
-    )) {
-      final dif = zilePanaLa(asig.dataExpirare);
-      if (dif == null || dif > setari.alertaAsigurare || dif < -365) continue;
-      final v = vehiculDupaId(asig.vehiculId);
-      rezultat.add(
-        Alerta(
-          tip: TipAlerta.asigurare,
-          vehiculId: asig.vehiculId,
-          numarVehicul: v?.nr ?? '',
-          titlu: '${asig.tip}${v != null ? ' - ${v.nr}' : ''}',
-          mesaj: dif < 0
-              ? '${asig.tip} expirată de ${-dif} zile'
-              : '${asig.tip} expiră în $dif zile',
-          zileRamase: dif,
-          itemId: asig.id,
-          dataExpirare: asig.dataExpirare,
-        ),
-      );
-    }
-
-    for (final rev in _ultimeleInregistrari(
-      revizii,
-      (r) => r.vehiculId,
-      (r) => r.timestamp,
-    )) {
-      final dif = zilePanaLa(rev.proximData);
-      if (dif == null || dif > setari.alertaRevizieZile || dif < -365) {
-        continue;
-      }
-      final v = vehiculDupaId(rev.vehiculId);
-      rezultat.add(
-        Alerta(
-          tip: TipAlerta.revizie,
-          vehiculId: rev.vehiculId,
-          numarVehicul: v?.nr ?? '',
-          titlu: 'Revizie${v != null ? ' - ${v.nr}' : ''}',
-          mesaj: dif < 0
-              ? 'Revizie restantă de ${-dif} zile'
-              : 'Revizie recomandată în $dif zile',
-          zileRamase: dif,
-          itemId: rev.id,
-          dataExpirare: rev.proximData,
-        ),
-      );
-    }
-
-    rezultat.removeWhere((a) => alerteInchise.contains(a.cheie));
-    rezultat.sort((a, b) => a.zileRamase.compareTo(b.zileRamase));
-    return rezultat;
-  }
-
-  /// Agregare costuri pe anul curent, pe categorie — fără nicio colecție
-  /// nouă, exact ca `calculeazaCosturi()` din PWA.
-  Map<String, num> get costuriPeCategorieAnCurent {
-    final anCurent = DateTime.now().year;
-    num totalItp = 0, totalRov = 0, totalAsig = 0, totalRevizii = 0;
-
-    for (final i in itpuri) {
-      if (_anDin(i.dataEfectuare) == anCurent) totalItp += i.cost;
-    }
-    for (final r in rovinete) {
-      if (_anDin(r.dataInceput) == anCurent) totalRov += r.cost;
-    }
-    for (final a in asigurari) {
-      if (_anDin(a.dataInceput) == anCurent) totalAsig += a.cost;
-    }
-    for (final r in revizii) {
-      if (_anDin(r.data) == anCurent) totalRevizii += r.costTotal;
-    }
-
-    return {
-      'ITP': totalItp,
-      'Rovinietă': totalRov,
-      'Asigurări': totalAsig,
-      'Revizii': totalRevizii,
-    };
-  }
-
-  int? _anDin(String dataIso) => DateTime.tryParse(dataIso)?.year;
+  Map<String, num> get costuriPeCategorieAnCurent => costuriPeCategorie(
+    an: DateTime.now().year,
+    itpuri: itpuri,
+    rovinete: rovinete,
+    asigurari: asigurari,
+    revizii: revizii,
+  );
 
   @override
   void dispose() {
@@ -374,4 +234,184 @@ class DateProvider extends ChangeNotifier {
     }
     super.dispose();
   }
+}
+
+/// Cea mai recentă înregistrare per vehicul (asigurările se țin separat
+/// per `tip`, ca RCA și CASCO să alerteze independent — la fel ca server).
+List<T> _ultimeleInregistrari<T>(
+  List<T> toate,
+  String Function(T) cheie,
+  DateTime? Function(T) timestamp,
+) {
+  final ultimele = <String, T>{};
+  for (final item in toate) {
+    final existent = ultimele[cheie(item)];
+    if (existent == null) {
+      ultimele[cheie(item)] = item;
+      continue;
+    }
+    final tsNou = timestamp(item);
+    final tsExistent = timestamp(existent);
+    if (tsNou != null && (tsExistent == null || tsNou.isAfter(tsExistent))) {
+      ultimele[cheie(item)] = item;
+    }
+  }
+  return ultimele.values.toList();
+}
+
+/// Alertele de afișat (ITP, rovinietă, asigurări, revizii): cea mai recentă
+/// înregistrare per vehicul, în pragul din [setari], cel mult un an după
+/// expirare, fără cele închise manual; cele mai urgente primele.
+List<Alerta> calculeazaAlerte({
+  required List<Vehicul> vehicule,
+  required List<Itp> itpuri,
+  required List<Rovinieta> rovinete,
+  required List<Asigurare> asigurari,
+  required List<Revizie> revizii,
+  required SetariAlerte setari,
+  Set<String> alerteInchise = const {},
+}) {
+  Vehicul? vehiculDupaId(String id) {
+    for (final v in vehicule) {
+      if (v.id == id) return v;
+    }
+    return null;
+  }
+
+  final rezultat = <Alerta>[];
+
+  for (final itp in _ultimeleInregistrari(
+    itpuri,
+    (i) => i.vehiculId,
+    (i) => i.timestamp,
+  )) {
+    final dif = zilePanaLa(itp.dataExpirare);
+    if (dif == null || dif > setari.alertaITP || dif < -365) continue;
+    final v = vehiculDupaId(itp.vehiculId);
+    rezultat.add(
+      Alerta(
+        tip: TipAlerta.itp,
+        vehiculId: itp.vehiculId,
+        numarVehicul: v?.nr ?? '',
+        titlu: 'ITP${v != null ? ' - ${v.nr}' : ''}',
+        mesaj: dif < 0
+            ? 'ITP expirat de ${-dif} zile'
+            : 'ITP expiră în $dif zile',
+        zileRamase: dif,
+        itemId: itp.id,
+        dataExpirare: itp.dataExpirare,
+      ),
+    );
+  }
+
+  for (final rov in _ultimeleInregistrari(
+    rovinete,
+    (r) => r.vehiculId,
+    (r) => r.timestamp,
+  )) {
+    final dif = zilePanaLa(rov.dataExpirare);
+    if (dif == null || dif > setari.alertaRovinieta || dif < -365) continue;
+    final v = vehiculDupaId(rov.vehiculId);
+    rezultat.add(
+      Alerta(
+        tip: TipAlerta.rovinieta,
+        vehiculId: rov.vehiculId,
+        numarVehicul: v?.nr ?? '',
+        titlu: 'Rovinietă${v != null ? ' - ${v.nr}' : ''}',
+        mesaj: dif < 0
+            ? 'Rovinietă expirată de ${-dif} zile'
+            : 'Rovinietă expiră în $dif zile',
+        zileRamase: dif,
+        itemId: rov.id,
+        dataExpirare: rov.dataExpirare,
+      ),
+    );
+  }
+
+  for (final asig in _ultimeleInregistrari(
+    asigurari,
+    (a) => '${a.vehiculId}_${a.tip}',
+    (a) => a.timestamp,
+  )) {
+    final dif = zilePanaLa(asig.dataExpirare);
+    if (dif == null || dif > setari.alertaAsigurare || dif < -365) continue;
+    final v = vehiculDupaId(asig.vehiculId);
+    rezultat.add(
+      Alerta(
+        tip: TipAlerta.asigurare,
+        vehiculId: asig.vehiculId,
+        numarVehicul: v?.nr ?? '',
+        titlu: '${asig.tip}${v != null ? ' - ${v.nr}' : ''}',
+        mesaj: dif < 0
+            ? '${asig.tip} expirată de ${-dif} zile'
+            : '${asig.tip} expiră în $dif zile',
+        zileRamase: dif,
+        itemId: asig.id,
+        dataExpirare: asig.dataExpirare,
+      ),
+    );
+  }
+
+  for (final rev in _ultimeleInregistrari(
+    revizii,
+    (r) => r.vehiculId,
+    (r) => r.timestamp,
+  )) {
+    final dif = zilePanaLa(rev.proximData);
+    if (dif == null || dif > setari.alertaRevizieZile || dif < -365) {
+      continue;
+    }
+    final v = vehiculDupaId(rev.vehiculId);
+    rezultat.add(
+      Alerta(
+        tip: TipAlerta.revizie,
+        vehiculId: rev.vehiculId,
+        numarVehicul: v?.nr ?? '',
+        titlu: 'Revizie${v != null ? ' - ${v.nr}' : ''}',
+        mesaj: dif < 0
+            ? 'Revizie restantă de ${-dif} zile'
+            : 'Revizie recomandată în $dif zile',
+        zileRamase: dif,
+        itemId: rev.id,
+        dataExpirare: rev.proximData,
+      ),
+    );
+  }
+
+  rezultat.removeWhere((a) => alerteInchise.contains(a.cheie));
+  rezultat.sort((a, b) => a.zileRamase.compareTo(b.zileRamase));
+  return rezultat;
+}
+
+/// Costurile din anul [an], pe categorie — fără nicio colecție
+/// nouă, exact ca `calculeazaCosturi()` din PWA.
+Map<String, num> costuriPeCategorie({
+  required int an,
+  required List<Itp> itpuri,
+  required List<Rovinieta> rovinete,
+  required List<Asigurare> asigurari,
+  required List<Revizie> revizii,
+}) {
+  int? anDin(String dataIso) => DateTime.tryParse(dataIso)?.year;
+  num totalItp = 0, totalRov = 0, totalAsig = 0, totalRevizii = 0;
+
+  for (final i in itpuri) {
+    if (anDin(i.dataEfectuare) == an) totalItp += i.cost;
+  }
+  for (final r in rovinete) {
+    if (anDin(r.dataInceput) == an) totalRov += r.cost;
+  }
+  for (final a in asigurari) {
+    if (anDin(a.dataInceput) == an) totalAsig += a.cost;
+  }
+  for (final r in revizii) {
+    if (anDin(r.data) == an) totalRevizii += r.costTotal;
+  }
+
+  return {
+    'ITP': totalItp,
+    'Rovinietă': totalRov,
+    'Asigurări': totalAsig,
+    'Revizii': totalRevizii,
+  };
 }
